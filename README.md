@@ -10,7 +10,7 @@ This plugin connects Claude to your TrackBee store data and gives it the skills 
 
 Setup takes about 5 minutes. You'll install the plugin, connect your store, and you're good to go.
 
-We recommend using [CoWork](https://cowork.anthropic.com/) — the plugin can be installed there in a few clicks.
+We recommend using [CoWork](https://claude.com/product/cowork) — the plugin can be installed there in a few clicks.
 
 ### 1. Install the plugin
 
