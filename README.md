@@ -10,9 +10,11 @@ This plugin connects Claude to your TrackBee store data and gives it the skills 
 
 Setup takes about 5 minutes. You'll install the plugin, connect your store, and you're good to go.
 
+We recommend using [CoWork](https://cowork.anthropic.com/) — the plugin can be installed there in a few clicks.
+
 ### 1. Install the plugin
 
-1. Open Claude Desktop
+1. Open CoWork
 2. Go to **Customize** > **Personal Plugins +**
 3. Click **Create Plugin**
 4. Click **Add Marketplace**
@@ -21,13 +23,15 @@ Setup takes about 5 minutes. You'll install the plugin, connect your store, and 
 7. Go to **Personal Plugins +** > **Browse Plugins** > **Personal plugins**
 8. Find **Vibe scaling** and click the **+** to add it
 
-That's it — the skills are now available in CoWork.
+That's it — the skills are now available.
 
 ### 2. Connect your store data
 
 Now let's connect your actual store data. This is what makes it personal — Claude will be looking at *your* numbers.
 
-1. In Claude Desktop, go to **Customize** > **Connectors**
+The TrackBee MCP connector works with any Claude tool that supports MCP — for example Chat, CoWork and Code.
+
+1. Go to **Customize** > **Connectors**
 2. Click the **+** button, then **Add custom Connector**
 3. Fill in two fields:
    - **Name:** `TrackBee MCP`
@@ -53,27 +57,27 @@ You don't need to memorize commands or learn any special syntax. Just ask natura
 
 Here are some ideas to get you started:
 
-### Ad performance
+### `/analyze-ad-performance`
 
 > "Which ads have high CTR but low ROAS?"
 > "This campaign moved to scaling — can we push more budget or should we kill it?"
 > "Which ads got budget increases this week and did the results hold up?"
 
-### Audience health
+### `/diagnose-audience-health`
 
 > "Is my CPM trending up across campaigns?"
 > "Show me frequency trends — am I saturating my audience?"
 > "Am I still reaching new customers or just showing ads to the same people?"
 
-### Creative audit
+### `/audit-creatives`
 
 > "Are any of my creatives showing fatigue?"
 > "What content type works best for [product]?"
 > "How long do my video ads last before performance drops?"
 
-### Not sure what to ask?
+### `/discover-insights`
 
-Start here — Claude will suggest the most valuable things to look at based on your store.
+Not sure what to ask? Start here — Claude will suggest the most valuable things to look at based on your store.
 
 > "What should I be looking at to grow my business?"
 > "Were my Black Friday campaigns worth it? Should I do it again?"
