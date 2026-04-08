@@ -16,10 +16,10 @@ Setup takes about 5 minutes. You'll install the plugin, connect your store, and 
 2. Go to **Customize** > **Personal Plugins +**
 3. Click **Create Plugin**
 4. Click **Add Marketplace**
-5. Enter `EC-Solutions-Software/vibescaling` as the URL
+5. Enter `EC-Solutions-Software/vibe-scaling` as the URL
 6. Click **Sync** and wait a moment for it to load
 7. Go to **Personal Plugins +** > **Browse Plugins** > **Personal plugins**
-8. Find **Vibescaling** and click the **+** to add it
+8. Find **Vibe scaling** and click the **+** to add it
 
 That's it — the skills are now available in CoWork.
 
