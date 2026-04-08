@@ -1,0 +1,9 @@
+{
+  "name": "vibe-scaling",
+  "description": "Ad performance analysis and creative intelligence plugin for TrackBee. Connects to the TrackBee MCP for store analytics, ad insights, and scaling decisions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "TrackBee"
+  },
+  "skills": "./.claude/skills/"
+}
