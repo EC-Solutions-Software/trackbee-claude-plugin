@@ -14,7 +14,11 @@ Find the disconnect between top-of-funnel wins and bottom-of-funnel losses. Help
 
 ## Workflow
 
-### 1. Understand the question
+### 1. Select the store
+
+Run `list_my_stores` to load the user's available stores. Ask the user which store they want to analyze. They can provide the store name or store ID.
+
+### 2. Understand the question
 
 Ask the user what they want to analyze. Common starting points:
 
@@ -22,22 +26,23 @@ Ask the user what they want to analyze. Common starting points:
 - **Scaling decision**: "This ad moved to scaling — can we push more budget?"
 - **Budget tracking**: "Which ads were increased recently and what happened?"
 
-Clarify the **store**, **platform** (Meta, Google, or both), and **time period** if not obvious. Default to the last 30 days if they don't specify.
+Clarify the **platform** (Meta, Google, or both) and **time period**. Default to the last 30 days if they don't specify.
 
-### 2. Pull the data
+Also ask: **Are any of your campaigns test campaigns?** If so, which ones — and do you want to include them in the results? Exclude test campaigns by default unless the user explicitly asks to include them.
 
-Use the TrackBee MCP tools to get the relevant data:
+### 3. Pull the data
 
-- `get_campaign_performance` — Campaign-level spend, revenue, ROAS, CPA
-- `get_meta_ad_insights` / `get_google_ad_insights` — Ad-level metrics including CTR, CPM, impressions, conversions
-- `get_meta_campaign_insights` / `get_google_campaign_insights` — Campaign-level breakdown
-- `detect_anomalies` — Spot sudden changes in performance
+Start at campaign level to get the lay of the land, then drill into ad level for the actual analysis:
 
-For funnel mismatch analysis, pull both reach metrics (impressions, CPM, CTR) and conversion metrics (purchases, ROAS, CPA) for the same ads.
+1. `get_meta_campaign_insights` — Campaign overview to identify active campaigns and their spend
+2. `get_meta_ad_insights` — **This is where the real analysis happens.** Pull ad-level data for each significant campaign. This gives you per-ad spend, ROAS, CTR, CPM, frequency, net new reach, and creative content
+3. `detect_anomalies` — Spot sudden changes in performance
 
-### 3. Analyze across the funnel
+Campaign-level data is a starting point to find which campaigns to drill into. Always go to ad level for conclusions — campaign averages hide the winners and losers.
 
-For each ad or campaign, compare:
+### 4. Analyze across the funnel
+
+For each ad, compare:
 
 | Metric | Top-of-funnel signal | Bottom-of-funnel signal |
 | --- | --- | --- |
@@ -48,21 +53,22 @@ For each ad or campaign, compare:
 
 Flag ads where top-of-funnel looks strong but bottom-of-funnel is weak. These are the most actionable — the creative works for attention but doesn't convert.
 
-### 4. Scaling assessment
+### 5. Scaling assessment
 
 For ads the user wants to scale, evaluate:
 
 - **Current spend vs results**: Is ROAS stable or declining as spend increases?
 - **Frequency**: Is the audience getting saturated? (frequency > 3 is a warning)
 - **CPM trend**: Rising CPM with flat results means diminishing returns
+- **Net new reach** (Meta): Is the ad still finding fresh audience? Check `net_new_reach` from `get_meta_ad_insights` — this counts users reached who were NOT reached in the prior 90 days, which is different from the standard reach in Ads Manager. A low net-new-reach-to-reach ratio means the ad is mostly re-showing to the same people. If net new reach is drying up, scaling more budget will just increase frequency without expanding your audience
 - **Audience size**: Can the target audience sustain more spend?
 
 Give a clear recommendation:
-- **Scale**: ROAS is stable, frequency is low, CPM is flat — push more budget
-- **Hold**: Results are okay but showing early signs of fatigue — monitor closely
-- **Kill**: ROAS is declining, frequency is high, CPM is rising — stop spending
+- **Scale**: ROAS is stable, frequency is low, CPM is flat, net new reach is healthy — push more budget
+- **Hold**: Results are okay but showing early signs of fatigue (net new reach declining, frequency creeping up) — monitor closely
+- **Kill**: ROAS is declining, frequency is high, CPM is rising, net new reach is near zero — stop spending
 
-### 5. Budget change tracking
+### 6. Budget change tracking
 
 When the user asks what happened after budget changes:
 
@@ -70,7 +76,7 @@ When the user asks what happened after budget changes:
 2. Compare performance metrics before vs after the change
 3. Show whether the increased spend maintained efficiency or diluted results
 
-### 6. Present findings
+### 7. Present findings
 
 Structure the response as:
 
@@ -99,3 +105,5 @@ Structure the response as:
 - CPA: cost per acquisition (spend / purchases)
 - Frequency: average number of times a person has seen your ad
 - Creative fatigue: when an audience has seen an ad too many times and engagement drops
+- Net new reach: users reached during a period who were NOT reached in the prior 90 days — different from standard reach in Ads Manager
+- Cost per net new reach: spend / net new reach — lower means more efficient at finding fresh audiences

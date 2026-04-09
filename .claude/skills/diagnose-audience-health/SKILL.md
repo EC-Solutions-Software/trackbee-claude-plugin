@@ -13,7 +13,11 @@ Detect when ad campaigns are running out of fresh audience. Rising CPM + droppin
 
 ## Workflow
 
-### 1. Understand the concern
+### 1. Select the store
+
+Run `list_my_stores` to load the user's available stores. Ask the user which store they want to analyze. They can provide the store name or store ID.
+
+### 2. Understand the concern
 
 The user usually comes in with one of these:
 
@@ -22,19 +26,19 @@ The user usually comes in with one of these:
 - "Am I still reaching new people?"
 - "Frequency is getting high — is that a problem?"
 
-Clarify the **store**, **platform**, and **time period**. For trend analysis, you need at least 14 days of data — suggest 30 days if they don't specify.
+Clarify the **platform** and **time period**. For trend analysis, you need at least 14 days of data — suggest 30 days if they don't specify.
 
-### 2. Pull trend data
+Also ask: **Are any of your campaigns test campaigns?** If so, which ones — and do you want to include them in the results? Exclude test campaigns by default unless the user explicitly asks to include them.
 
-Use the TrackBee MCP tools:
+### 3. Pull trend data
 
-- `get_meta_campaign_insights` / `get_google_campaign_insights` — Campaign-level daily metrics
-- `get_meta_ad_insights` / `get_google_ad_insights` — Ad-level for drilling into specific creatives
-- `detect_anomalies` — Flag sudden changes in CPM, CTR, or frequency
+Start at campaign level for orientation, then drill into ad level for the real diagnosis:
 
-Request data broken down by day so you can see trends over time.
+1. `get_meta_campaign_insights` — Campaign overview to identify which campaigns to investigate
+2. `get_meta_ad_insights` — **The core data source.** Ad-level metrics reveal which specific ads are saturating. Campaign averages can mask that one ad is healthy while another is exhausted. For Meta, this includes **net new reach** per ad
+3. `detect_anomalies` — Flag sudden changes in CPM, CTR, or frequency
 
-### 3. Check the three warning signals
+### 4. Check the three warning signals
 
 Analyze the data for the saturation pattern:
 
@@ -46,23 +50,28 @@ Analyze the data for the saturation pattern:
 
 All three moving in the wrong direction together is a strong signal of audience saturation. One metric moving alone may have a different cause.
 
-### 4. Identify the scope
+### 5. Identify the scope
 
 Determine if the problem is:
 
 - **Account-wide**: All campaigns showing the pattern — the overall audience pool may be tapped out
-- **Campaign-specific**: Only certain campaigns — likely a targeting or creative issue
+- **Campaign-specific**: Only certain campaigns — drill into ad-level data to pinpoint which ads are the culprits
 - **Platform-specific**: One platform saturated but not the other — reallocate budget
 
-### 5. Assess new customer reach
+### 6. Assess new customer reach
 
 Look at these indicators:
 
+- **Net new reach** (Meta only): The most direct signal. `get_meta_ad_insights` returns `net_new_reach` per ad — users reached who were NOT reached in the prior 90 days. This is different from the standard "reach" in Ads Manager, which only deduplicates within the selected date range. Compare `net_new_reach` to total `reach`: if the ratio is low, the ad is mostly re-showing to existing audience. Also check `cost_per_net_new_reach` — rising cost means you're paying more for each new person
 - **Frequency distribution**: What percentage of impressions go to people who've seen the ad 1x vs 5x+?
 - **Reach vs impressions ratio**: A widening gap means the same people see more ads
-- **New audience metrics**: If available from the platform, check new vs returning reach
 
-### 6. Present the diagnosis
+When net new reach is low, diagnose the cause in priority order:
+1. **Creative fatigue** — the audience has seen your ads too many times. Refresh creatives or test new angles. This is the most common cause.
+2. **Lack of creative diversity** — too few variations. Broaden the creative mix to unlock new audience segments.
+3. **Custom optimisation goals** — in rare cases, the campaign objective may be limiting audience expansion. Lower priority; check creatives first.
+
+### 7. Present the diagnosis
 
 Structure the response as:
 
@@ -93,3 +102,5 @@ Structure the response as:
 - CPA: cost per acquisition (spend / purchases)
 - Frequency: average number of times a person has seen your ad
 - Audience saturation: when you've shown ads to most of your target audience and start paying more to reach the same people
+- Net new reach: users reached during a period who were NOT reached in the prior 90 days — different from standard reach in Ads Manager, which only deduplicates within the selected date range
+- Cost per net new reach: spend / net new reach — lower means more efficient at finding fresh audiences

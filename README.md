@@ -18,10 +18,10 @@ We recommend using [CoWork](https://claude.com/product/cowork) — the plugin ca
 2. Go to **Customize** > **Personal Plugins +**
 3. Click **Create Plugin**
 4. Click **Add Marketplace**
-5. Enter `EC-Solutions-Software/vibe-scaling` as the URL
+5. Enter `EC-Solutions-Software/trackbee-claude-plugin` as the URL
 6. Click **Sync** and wait a moment for it to load
 7. Go to **Personal Plugins +** > **Browse Plugins** > **Personal plugins**
-8. Find **Vibe scaling** and click the **+** to add it
+8. Find **TrackBee Claude Plugin** and click the **+** to add it
 
 That's it — the skills are now available.
 

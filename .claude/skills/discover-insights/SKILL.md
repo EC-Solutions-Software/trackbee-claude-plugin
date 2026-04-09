@@ -14,15 +14,20 @@ Help the user figure out what to ask and where the opportunities are. Not everyo
 
 ## Workflow
 
-### 1. Understand the context
+### 1. Select the store
+
+Run `list_my_stores` to load the user's available stores. Ask the user which store they want to explore. They can provide the store name or store ID.
+
+Also ask: **Are any of your campaigns test campaigns?** If so, which ones — these will be excluded when routing to other skills unless the user says otherwise.
+
+### 2. Understand the context
 
 Ask the user:
 
-- What store or brand are they working on?
 - What's their current focus? (scaling, launching, optimizing, seasonal planning)
 - Are they looking for quick wins or strategic direction?
 
-### 2. Suggest valuable questions
+### 3. Suggest valuable questions
 
 Based on their context, present a curated list of high-value questions they can ask. Group them by theme:
 
@@ -30,6 +35,7 @@ Based on their context, present a curated list of high-value questions they can 
 - "Which campaigns have the best and worst ROAS this month?"
 - "Are any ads showing signs of creative fatigue?"
 - "Is my CPM trending up — am I running out of fresh audience?"
+- "What's my net new reach — are my ads still finding new people?"
 - "Which ads got budget increases and did the results hold up?"
 
 **Scaling opportunities:**
@@ -54,7 +60,7 @@ Based on their context, present a curated list of high-value questions they can 
 
 Tailor the suggestions to what's relevant for the user's store and current situation. Don't dump all questions — pick the 5-8 most relevant ones.
 
-### 3. Seasonal campaign review
+### 4. Seasonal campaign review
 
 When the user asks about past seasonal investments (Black Friday, Christmas, summer sales, etc.):
 
@@ -65,12 +71,12 @@ When the user asks about past seasonal investments (Black Friday, Christmas, sum
 
 Present as: "You spent X on Black Friday creatives and generated Y in revenue (Z ROAS). Your normal ROAS for that period would have been W. The seasonal push added [amount] in incremental revenue — [worth it / not worth repeating]."
 
-### 4. Growth patterns from other brands
+### 5. Growth patterns from other brands
 
 Share proven patterns that high-performing DTC brands and performance marketers use. These aren't from the user's data — they're general best practices:
 
 **What top performers track weekly:**
-- ROAS by campaign and ad set, not just account level
+- ROAS at ad level, not just campaign or account level — campaign averages hide the winners and losers
 - Creative fatigue scores — replacing ads before they die
 - New vs returning customer acquisition ratio
 - Platform-level efficiency — shifting budget to what's working
@@ -78,7 +84,7 @@ Share proven patterns that high-performing DTC brands and performance marketers 
 **Common blind spots:**
 - Only looking at last-click attribution — missing top-of-funnel value
 - Not tracking creative lifetime — running fatigued ads too long
-- Ignoring frequency until CPM spikes
+- Ignoring frequency and net new reach until CPM spikes
 - Treating all products the same — different products need different content strategies
 
 **Scaling playbook:**
@@ -87,7 +93,7 @@ Share proven patterns that high-performing DTC brands and performance marketers 
 - Diversify creatives before scaling — one winning ad will fatigue faster at high spend
 - Use seasonal peaks to acquire customers at lower CPA, then retarget year-round
 
-### 5. Offer next steps
+### 6. Offer next steps
 
 After presenting suggestions, ask the user which direction interests them most. Route to the appropriate skill:
 

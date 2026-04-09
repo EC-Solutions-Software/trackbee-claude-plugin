@@ -14,7 +14,11 @@ Understand which creatives are working, which are dying, and what to make next. 
 
 ## Workflow
 
-### 1. Understand what the user needs
+### 1. Select the store
+
+Run `list_my_stores` to load the user's available stores. Ask the user which store they want to analyze. They can provide the store name or store ID.
+
+### 2. Understand what the user needs
 
 Common starting points:
 
@@ -23,20 +27,22 @@ Common starting points:
 - **Content comparison**: "What type of content works best for [product]?"
 - **Production guidance**: "What should I create next?"
 
-Clarify the **store**, **platform**, and whether they want to look at all creatives or a specific product/campaign.
+Clarify the **platform** and whether they want to look at all creatives or a specific product/campaign.
 
-### 2. Pull creative data
+Also ask: **Are any of your campaigns test campaigns?** If so, which ones — and do you want to include them in the results? Exclude test campaigns by default unless the user explicitly asks to include them.
 
-Use the TrackBee MCP tools:
+### 3. Pull creative data
 
-- `get_meta_ad_insights` / `get_google_ad_insights` — Ad-level performance over time
-- `get_meta_campaign_insights` / `get_google_campaign_insights` — Campaign context for the ads
-- `detect_anomalies` — Spot sudden performance drops
-- `get_meta_recommendations` — Platform-specific improvement suggestions
+Campaign level gives you context; ad level gives you the answer:
+
+1. `get_meta_campaign_insights` — Identify active campaigns to drill into
+2. `get_meta_ad_insights` — **The primary data source.** Returns per-ad performance (CTR, ROAS, CPA, frequency, net new reach) plus full creative content (format, copy, image/video URLs). This is where fatigue detection and content-type analysis happen
+3. `detect_anomalies` — Spot sudden performance drops
+4. `get_meta_recommendations` — Platform-specific improvement suggestions
 
 Request a long enough time range to see creative lifecycle trends — at least 30 days, ideally 60-90 days.
 
-### 3. Detect creative fatigue
+### 4. Detect creative fatigue
 
 A creative is fatigued when its performance degrades over time despite stable or increasing spend. Check for:
 
@@ -46,10 +52,11 @@ A creative is fatigued when its performance degrades over time despite stable or
 | **CPA increase** | Rising cost per acquisition — conversions get more expensive |
 | **Frequency spike** | Same audience seeing the ad too often |
 | **ROAS decline** | Diminishing returns on spend |
+| **Net new reach drop** | Ad is no longer finding fresh audience (Meta only — check `net_new_reach` from `get_meta_ad_insights`) |
 
 Compare current performance (last 7 days) against the creative's peak performance period. A creative that once had 2% CTR and now has 0.8% is fatigued.
 
-### 4. Measure creative lifetime
+### 5. Measure creative lifetime
 
 For each content type (video, static image, carousel, etc.):
 
@@ -63,7 +70,7 @@ Report average lifetime by content type:
 - "Your video ads typically peak in week 2 and fatigue by week 5"
 - "Static images have a shorter lifecycle — about 2-3 weeks before fatigue sets in"
 
-### 5. Compare content types per product
+### 6. Compare content types per product
 
 If the user has multiple products or product categories:
 
@@ -73,7 +80,7 @@ If the user has multiple products or product categories:
 
 Example finding: "For [Product A], video ads outperform static images on ROAS (3.2x vs 1.8x) and last twice as long before fatigue."
 
-### 6. Suggest what to create next
+### 7. Suggest what to create next
 
 Based on the analysis, recommend:
 
@@ -82,7 +89,7 @@ Based on the analysis, recommend:
 - **Fill gaps**: "You have no carousel ads for [Product B] — worth testing since carousels perform well for similar products"
 - **Content themes**: If certain angles or messages perform better, call them out
 
-### 7. Present findings
+### 8. Present findings
 
 Structure the response as:
 
@@ -108,3 +115,4 @@ Structure the response as:
 - CPA: cost per acquisition (spend / purchases)
 - Frequency: average number of times a person has seen your ad
 - Creative lifetime: the period from launch to when performance drops below a useful threshold
+- Net new reach: users reached during a period who were NOT reached in the prior 90 days — confirms fatigue when it drops alongside CTR
