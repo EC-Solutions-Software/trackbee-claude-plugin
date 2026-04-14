@@ -34,9 +34,16 @@ Also ask: **Are any of your campaigns test campaigns?** If so, which ones — an
 
 Start at campaign level for orientation, then drill into ad level for the real diagnosis:
 
+**Meta:**
 1. `get_meta_campaign_insights` — Campaign overview to identify which campaigns to investigate
 2. `get_meta_ad_insights` — **The core data source.** Ad-level metrics reveal which specific ads are saturating. Campaign averages can mask that one ad is healthy while another is exhausted. For Meta, this includes **net new reach** per ad
-3. `detect_anomalies` — Flag sudden changes in CPM, CTR, or frequency
+
+**Google Ads:**
+1. `get_google_campaign_insights` — Campaign overview with new vs returning customer breakdown
+2. `get_google_ad_insights` — Ad-level data with new vs returning customer conversions per ad
+
+**Both platforms:**
+- `detect_anomalies` — Flag sudden changes in CPM, CTR, or frequency
 
 ### 4. Check the three warning signals
 
@@ -71,7 +78,24 @@ When net new reach is low, diagnose the cause in priority order:
 2. **Lack of creative diversity** — too few variations. Broaden the creative mix to unlock new audience segments.
 3. **Custom optimisation goals** — in rare cases, the campaign objective may be limiting audience expansion. Lower priority; check creatives first.
 
-### 7. Present the diagnosis
+Also check **attribution windows** for brand awareness impact:
+- High `purchases_1d_view` relative to click-based conversions suggests the ad drives brand recall — people see the ad, don't click, but buy later. This is a sign of healthy upper-funnel reach even if click metrics look weak.
+- If `purchases_1d_view` is dropping alongside net new reach, the ad is losing both new and existing audience impact.
+
+### 7. Check new vs returning customer balance
+
+Both platforms can report new vs returning customer breakdowns:
+
+- **Google Ads**: `new_customer_conversions` and `returning_customer_conversions` per campaign and ad
+- **Meta**: `new_customer_purchases` and `returning_customer_purchases` per campaign and ad (from TrackBee's custom conversion events — null if not configured on the ad account)
+
+Use this to validate whether the audience is truly fresh:
+
+- **Declining new customer ratio**: If new / total drops over time, the campaign is increasingly re-converting existing customers — a sign of audience saturation even if overall conversion numbers look healthy.
+- **New customer CAC rising**: If spend / new_customer_purchases (or conversions) is trending up, it's getting more expensive to find new buyers — the easy-to-reach audience is tapped out.
+- **Cross-reference net new reach with new customer purchases**: For Meta ads specifically, low net new reach + low new_customer_purchases is a double confirmation of audience exhaustion. If net new reach is low but new_customer_purchases stays healthy, the ad is still converting the fresh reach efficiently.
+
+### 8. Present the diagnosis
 
 Structure the response as:
 
@@ -104,3 +128,9 @@ Structure the response as:
 - Audience saturation: when you've shown ads to most of your target audience and start paying more to reach the same people
 - Net new reach: users reached during a period who were NOT reached in the prior 90 days — different from standard reach in Ads Manager, which only deduplicates within the selected date range
 - Cost per net new reach: spend / net new reach — lower means more efficient at finding fresh audiences
+- Attribution window: the time period after an ad interaction during which a conversion is credited. Click windows are cumulative (1d_click ⊂ 7d_click ⊂ 28d_click — never sum them). 1d_view is separate (view-only, no click). Default purchases = 7d_click + 1d_view.
+- View-through conversion (1d_view): a purchase after seeing an ad without clicking — separate from click windows, signals brand awareness impact
+- New customer conversions (Google Ads): orders from first-time buyers. A declining new customer ratio is a strong signal of audience saturation.
+- Returning customer conversions (Google Ads): orders from repeat customers. Rising share suggests the campaign is re-engaging rather than acquiring.
+- New customer purchases (Meta): orders from first-time buyers, from TrackBee's custom conversion event. Null when not configured on the ad account.
+- Returning customer purchases (Meta): orders from repeat customers, from TrackBee's custom conversion event. Null when not configured.

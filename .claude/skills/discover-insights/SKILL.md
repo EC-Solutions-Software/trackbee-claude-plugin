@@ -38,6 +38,19 @@ Based on their context, present a curated list of high-value questions they can 
 - "What's my net new reach — are my ads still finding new people?"
 - "Which ads got budget increases and did the results hold up?"
 
+**Attribution and conversion path:**
+- "Are my ads driving immediate purchases or delayed conversions?"
+- "Which ads have strong view-through conversions but weak click conversions?"
+- "How long does it take my customers to convert after seeing an ad?"
+- "Are any ads being used as upper funnel by Meta's algorithm?"
+
+**New vs returning customer acquisition (Google Ads & Meta):**
+- "Which campaigns are best at acquiring new customers vs re-engaging existing ones?"
+- "What's my new customer CAC per campaign — where is acquisition cheapest?"
+- "Is my new customer ratio declining — am I running out of fresh audience?"
+- "Which ads drive the most first-time buyers?"
+- "How does my new customer acquisition compare between Meta and Google Ads?"
+
 **Scaling opportunities:**
 - "Which ads have strong engagement but haven't been scaled yet?"
 - "What's my best-performing content type — should I make more of it?"
@@ -78,14 +91,16 @@ Share proven patterns that high-performing DTC brands and performance marketers 
 **What top performers track weekly:**
 - ROAS at ad level, not just campaign or account level — campaign averages hide the winners and losers
 - Creative fatigue scores — replacing ads before they die
-- New vs returning customer acquisition ratio
+- New vs returning customer acquisition ratio — both Google Ads (via `new_customer_conversions` / `returning_customer_conversions`) and Meta (via `new_customer_purchases` / `returning_customer_purchases`, from TrackBee's custom conversion events) provide this per campaign and ad
 - Platform-level efficiency — shifting budget to what's working
 
 **Common blind spots:**
-- Only looking at last-click attribution — missing top-of-funnel value
+- Only looking at default attribution (7d_click + 1d_view) — missing that some ads drive delayed conversions visible in 28d_click. Click windows are cumulative (1d ⊂ 7d ⊂ 28d), so compare them to find the delayed value, don't sum them.
+- Killing ads with low immediate ROAS that are actually working as upper funnel (high 28d_click revenue)
 - Not tracking creative lifetime — running fatigued ads too long
 - Ignoring frequency and net new reach until CPM spikes
 - Treating all products the same — different products need different content strategies
+- Not tracking new vs returning customer ratio (Google Ads and Meta) — a campaign with strong total ROAS that mostly re-converts existing customers isn't actually driving growth
 
 **Scaling playbook:**
 - Test at low budget, identify winners, scale incrementally (20-30% budget increases)
@@ -119,3 +134,7 @@ After presenting suggestions, ask the user which direction interests them most. 
 - CTR: click-through rate
 - Frequency: average number of times a person has seen your ad
 - Creative fatigue: when an audience has seen an ad too many times and engagement drops
+- New customer conversions (Google Ads): orders from first-time buyers — use to calculate new customer CAC and assess acquisition efficiency
+- Returning customer conversions (Google Ads): orders from repeat customers — high share may indicate audience saturation
+- New customer purchases (Meta): orders from first-time buyers via TrackBee's NewCustomerPurchase custom conversion event. Null when not configured on the ad account.
+- Returning customer purchases (Meta): orders from repeat customers via TrackBee's ReturningCustomerPurchase custom conversion event. Null when not configured.

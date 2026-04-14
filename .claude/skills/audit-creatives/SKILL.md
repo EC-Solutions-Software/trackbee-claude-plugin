@@ -35,10 +35,17 @@ Also ask: **Are any of your campaigns test campaigns?** If so, which ones — an
 
 Campaign level gives you context; ad level gives you the answer:
 
+**Meta:**
 1. `get_meta_campaign_insights` — Identify active campaigns to drill into
 2. `get_meta_ad_insights` — **The primary data source.** Returns per-ad performance (CTR, ROAS, CPA, frequency, net new reach) plus full creative content (format, copy, image/video URLs). This is where fatigue detection and content-type analysis happen
-3. `detect_anomalies` — Spot sudden performance drops
-4. `get_meta_recommendations` — Platform-specific improvement suggestions
+3. `get_meta_recommendations` — Platform-specific improvement suggestions
+
+**Google Ads:**
+1. `get_google_campaign_insights` — Campaign overview with new vs returning customer breakdown
+2. `get_google_ad_insights` — Ad-level performance with new vs returning customer conversions per ad
+
+**Both platforms:**
+- `detect_anomalies` — Spot sudden performance drops
 
 Request a long enough time range to see creative lifecycle trends — at least 30 days, ideally 60-90 days.
 
@@ -55,6 +62,10 @@ A creative is fatigued when its performance degrades over time despite stable or
 | **Net new reach drop** | Ad is no longer finding fresh audience (Meta only — check `net_new_reach` from `get_meta_ad_insights`) |
 
 Compare current performance (last 7 days) against the creative's peak performance period. A creative that once had 2% CTR and now has 0.8% is fatigued.
+
+Use attribution windows to avoid premature kills: if purchases_1d_click drops but purchases_28d_click holds steady, the creative still has residual impact — it's shifted to upper-funnel behavior rather than being fully fatigued.
+
+For Google Ads and Meta, also check the new customer trend: `new_customer_conversions` (Google) or `new_customer_purchases` (Meta, when available). A creative where total conversions hold but new customer counts drop is fatiguing specifically on acquisition — it's only re-engaging existing customers.
 
 ### 5. Measure creative lifetime
 
@@ -75,10 +86,13 @@ Report average lifetime by content type:
 If the user has multiple products or product categories:
 
 1. Group creatives by product and content type
-2. Compare key metrics: CTR, ROAS, CPA, and lifetime
+2. Compare key metrics: CTR, ROAS, CPA, lifetime, and attribution window patterns
 3. Identify which content types win for each product
 
-Example finding: "For [Product A], video ads outperform static images on ROAS (3.2x vs 1.8x) and last twice as long before fatigue."
+Example findings:
+- "For [Product A], video ads outperform static images on ROAS (3.2x vs 1.8x) and last twice as long before fatigue."
+- "Video ads show significantly more view-through conversions (1d_view) than static images — they build brand recall even without clicks."
+- "Carousel ads drive mostly 1d_click conversions — they work as direct-response, not awareness."
 
 ### 7. Suggest what to create next
 
@@ -116,3 +130,7 @@ Structure the response as:
 - Frequency: average number of times a person has seen your ad
 - Creative lifetime: the period from launch to when performance drops below a useful threshold
 - Net new reach: users reached during a period who were NOT reached in the prior 90 days — confirms fatigue when it drops alongside CTR
+- Attribution window: time after an ad interaction during which a conversion is credited. Click windows are cumulative (1d_click ⊂ 7d_click ⊂ 28d_click — never sum them). 1d_view is separate (view-only, no click). Default purchases = 7d_click + 1d_view.
+- View-through conversion (1d_view): purchase after seeing an ad without clicking — separate from click windows. Video ads typically show more of these than static.
+- New customer conversions (Google Ads): orders from first-time buyers. A creative losing new customer conversions while keeping total conversions is fatiguing on acquisition specifically.
+- New customer purchases (Meta): orders from first-time buyers, from TrackBee's custom conversion event. Null if not configured. Use the same way as Google's new customer conversions.
