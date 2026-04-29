@@ -8,7 +8,7 @@
       "name": "trackbee-claude-plugin",
       "source": "./",
       "description": "Ad performance analysis and creative intelligence plugin for TrackBee. Connects to the TrackBee MCP for store analytics, ad insights, and scaling decisions.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     }
   ]
 }
