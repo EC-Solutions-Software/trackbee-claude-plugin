@@ -29,7 +29,7 @@ That's it — the skills are now available.
 
 Now let's connect your actual store data. This is what makes it personal — Claude will be looking at *your* numbers.
 
-The TrackBee MCP connector works with any Claude tool that supports MCP — for example Chat, CoWork and Code.
+The TrackBee MCP works with any Claude tool that supports MCP — for example Chat, CoWork and Code.
 
 1. Go to **Customize** > **Connectors**
 2. Click the **+** button, then **Add custom Connector**
@@ -39,7 +39,7 @@ The TrackBee MCP connector works with any Claude tool that supports MCP — for 
 4. Click **Save**
 5. A browser window opens — sign in the same way you would on trackbee.io
 
-When the TrackBee MCP shows as **active**, you're connected!
+When the TrackBee Marketer connector shows as **active**, you're connected!
 
 ### 3. Check it works
 
