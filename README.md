@@ -34,7 +34,7 @@ The TrackBee MCP connector works with any Claude tool that supports MCP — for 
 1. Go to **Customize** > **Connectors**
 2. Click the **+** button, then **Add custom Connector**
 3. Fill in two fields:
-   - **Name:** `TrackBee MCP`
+   - **Name:** `TrackBee Marketer`
    - **URL:** your TrackBee contact will give you this
 4. Click **Save**
 5. A browser window opens — sign in the same way you would on trackbee.io
