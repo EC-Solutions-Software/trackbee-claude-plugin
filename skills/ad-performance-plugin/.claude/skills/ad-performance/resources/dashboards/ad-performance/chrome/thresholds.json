@@ -1,0 +1,35 @@
+{
+  "_description": "All numeric thresholds used by the ad-performance dashboard. Pulled into Python (via transforms/_load_thresholds) AND injected into window.TB_DATA so the front-end and back-end use the same numbers. Change one number here and both layers move together.",
+
+  "roas_good":         2.5,
+  "roas_ok":           1.5,
+  "freq_ok":           3.0,
+  "freq_bad":          4.0,
+
+  "action_min_spend":  50,
+  "scale_roas":        1.8,
+  "scale_max_freq":    2.5,
+  "refresh_min_freq":  3.5,
+  "refresh_min_roas":  1.2,
+  "pause_roas":        1.2,
+  "pause_min_spend":   100,
+
+  "insights_high_freq_threshold":       3.0,
+  "insights_pause_min_spend":          200,
+  "insights_creative_refresh_min_freq": 3.5,
+  "insights_creative_refresh_min_roas": 1.2,
+
+  "google_scale_roas":      4.0,
+  "google_scale_min_spend": 50,
+  "google_pause_roas":      1.0,
+  "google_pause_min_spend": 100,
+
+  "q_freq_min":          2.5,
+  "q_freq_min_spend":    500,
+  "q_underp_min_spend":  300,
+  "q_underp_max_roas":   1.5,
+  "q_meta_scale_roas":   1.7,
+  "q_meta_scale_max_freq": 2.0,
+  "q_google_scale_roas": 2.0,
+  "q_scale_min_spend":   200
+}

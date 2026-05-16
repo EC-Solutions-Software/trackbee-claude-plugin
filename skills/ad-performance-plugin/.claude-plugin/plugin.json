@@ -1,0 +1,9 @@
+{
+  "name": "ad-performance-plugin",
+  "description": "Generate a TrackBee-branded Ad Performance Dashboard — a self-contained HTML report showing all active campaigns, ad sets, and ads across Meta and Google for every store the user has access to.",
+  "version": "2.1.0",
+  "author": {
+    "name": "TrackBee"
+  },
+  "skills": "./.claude/skills/"
+}

@@ -1,0 +1,29 @@
+<!-- Store-level KPI tiles. Placeholders are filled by the orchestrator.
+     Values are pre-formatted server-side so this fragment stays inert. -->
+<div class="kpi-bar">
+  <div class="kpi-tile">
+    <div class="kpi-label">Total Ad Spend</div>
+    <div class="kpi-value">{TOTAL_SPEND}</div>
+    <div class="kpi-sub">Meta {META_SPEND} · Google {GOOG_SPEND}</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">Blended ROAS</div>
+    <div class="kpi-value {BLENDED_CLASS}">{BLENDED_ROAS}×</div>
+    <div class="kpi-sub">Meta {META_ROAS}× · Google {GOOG_ROAS}×</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">MER (TrackBee)</div>
+    <div class="kpi-value">{MER}×</div>
+    <div class="kpi-sub">Total revenue ÷ total ad spend</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">Conversions</div>
+    <div class="kpi-value">{CONVERSIONS}</div>
+    <div class="kpi-sub">across all platforms · Meta {META_PURCH} · Google {GOOG_CONV}</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">Avg Daily Spend</div>
+    <div class="kpi-value">{AVG_DAILY}</div>
+    <div class="kpi-sub">{N_DAYS}-day window</div>
+  </div>
+</div>

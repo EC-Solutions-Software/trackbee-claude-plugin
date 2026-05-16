@@ -1,0 +1,6 @@
+{
+  "name": "ad-performance-plugin",
+  "private": true,
+  "description": "TrackBee Ad Performance Dashboard plugin.",
+  "version": "2.1.0"
+}
