@@ -1,9 +1,9 @@
 {
   "name": "trackbee-claude-plugin",
   "description": "TrackBee dashboard skills for Claude — ships two Live Artifact HTML reports: an Ad Performance dashboard (cross-platform Meta + Google campaign analysis with Scale/Hold/Refresh/Pause recommendations) and an Attribution dashboard (blended KPIs, NC-ROAS trend, channel attribution, journey Sankey + heatmap, executive summary).",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "author": {
     "name": "TrackBee"
   },
-  "skills": "./.claude/skills/"
+  "skills": "./skills/"
 }
