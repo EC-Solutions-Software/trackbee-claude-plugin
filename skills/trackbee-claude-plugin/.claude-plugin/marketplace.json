@@ -1,0 +1,10 @@
+{
+  "name": "trackbee-claude-plugin",
+  "owner": { "name": "TrackBee" },
+  "plugins": [{
+    "name": "trackbee-claude-plugin",
+    "source": "./",
+    "description": "TrackBee dashboards for Claude — Ad Performance (cross-platform Meta + Google campaign analysis with Scale/Hold/Refresh/Pause recommendations and sortable table) and Attribution (blended KPIs, NC-ROAS trend, channel attribution, journey Sankey + heatmap, executive summary). Both render as self-contained Live Artifact HTML reports.",
+    "version": "3.0.0"
+  }]
+}
