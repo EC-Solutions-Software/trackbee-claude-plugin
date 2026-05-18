@@ -38,9 +38,14 @@ def insights(touchpoints: dict, orders_per_platform: dict | None = None) -> list
         return int(orders_normalised.get(p, 0) or 0) >= MIN_SAMPLE
 
     # Pairwise overlap from cooccurrence — keep one direction per pair.
+    # cooccurrence rows are symmetric and use "a"/"b" in the MCP payload;
+    # the directional "leading"/"related" keys belong to the transitions
+    # bucket below. Accept either spelling so we degrade gracefully if a
+    # future payload variant reuses the directional keys here.
     pair_overlap: dict[tuple[str, str], float] = {}
     for row in cooccur:
-        a, b = row.get("leading"), row.get("related")
+        a = row.get("a") or row.get("leading")
+        b = row.get("b") or row.get("related")
         if not a or not b or a == "order" or b == "order":
             continue
         if not _passes_sample(a) or not _passes_sample(b):

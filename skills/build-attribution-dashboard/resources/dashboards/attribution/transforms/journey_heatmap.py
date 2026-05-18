@@ -4,8 +4,9 @@ Reads the channel-interactions payload (saved as ``touchpoints.json``) and
 returns the heatmap as a pre-rendered HTML <table> string with inline
 background colours. Each off-diagonal cell shows the share of orders in
 which BOTH the row channel and the column channel appeared anywhere in the
-shopper's path. The diagonal shows the share of single-touch orders where
-the channel converted on its own.
+shopper's path. The diagonal shows the share of orders where the same
+channel touched the shopper more than once in the same path — pulled from
+the ``<X> -> <X>`` self-loop rows in ``transitions[]``.
 
 Input shape (from ``tool__get_platform_interactions``):
 
@@ -48,11 +49,17 @@ def _pretty(name: str) -> str:
 
 
 def _platforms_from(touchpoints: dict) -> list[str]:
-    """Union of every channel that appears as leading or related in the payload."""
+    """Union of every channel in the payload.
+
+    ``transitions`` rows are directional and use ``leading``/``related``;
+    ``cooccurrence`` rows are symmetric and use ``a``/``b``. We walk all
+    four keys so channels that appear only in cooccurrence (not in
+    transitions) still make the list.
+    """
     seen: list[str] = []
     for bucket in ("cooccurrence", "transitions"):
         for row in touchpoints.get(bucket) or []:
-            for side in ("leading", "related"):
+            for side in ("leading", "related", "a", "b"):
                 name = row.get(side)
                 if not name or name == "order" or name == "organic":
                     continue
@@ -67,27 +74,35 @@ def transform(inputs: dict, config: dict) -> dict:
 
     platforms = _platforms_from(touchpoints)
 
-    # Pairwise overlap from cooccurrence — share_of_orders for each {a, b} pair.
+    # Pairwise overlap from cooccurrence — share_of_orders for each {a, b}
+    # pair. cooccurrence rows are symmetric and use "a"/"b"; we also accept
+    # "leading"/"related" as a fallback in case a future payload variant
+    # reuses the directional keys for symmetric pairs.
     overlap: dict[tuple[str, str], float] = {}
     for row in touchpoints.get("cooccurrence") or []:
-        a, b = row.get("leading"), row.get("related")
+        a = row.get("a") or row.get("leading")
+        b = row.get("b") or row.get("related")
         if not a or not b or a == "order" or b == "order":
             continue
         share = float(row.get("share_of_orders") or 0.0) * 100.0
         overlap[(a, b)] = share
         overlap.setdefault((b, a), share)
 
-    # Per-channel solo share — the diagonal. transitions where leading=<p>
-    # and related="order" with the path being single-touch is captured via
-    # the envelope's single_touch_share, but per-channel solo is not in the
-    # interactions payload. We approximate solo per channel as the gap
-    # between the channel's total appearance and its overlap with anyone
-    # else; if we can't compute it, leave the diagonal as zero.
-    channel_overlap_max: dict[str, float] = {}
-    for (a, b), v in overlap.items():
-        if a == b:
+    # Per-channel self-cooccurrence — the diagonal. The interactions payload
+    # exposes ``<X> -> <X>`` self-loop rows in ``transitions[]``, where
+    # ``share_of_orders`` is the fraction of all orders whose path contains
+    # a self-transition (i.e. the channel touched the shopper more than
+    # once). This is the natural mate of the off-diagonal cooccurrence
+    # values: it answers "what share of orders saw this channel touch more
+    # than once?". Channels with no self-loop row (one-touch-only channels
+    # like shop_app or judgeme) correctly stay at 0.0% — that's accurate.
+    self_share: dict[str, float] = {}
+    for row in touchpoints.get("transitions") or []:
+        a = row.get("leading")
+        b = row.get("related")
+        if not a or a != b or a in ("order", "organic"):
             continue
-        channel_overlap_max[a] = max(channel_overlap_max.get(a, 0.0), v)
+        self_share[a] = float(row.get("share_of_orders") or 0.0) * 100.0
 
     # Ordering: well-known first, then any others.
     ordered = [p for p in _PREFERRED_ORDER if p in platforms]
@@ -100,7 +115,7 @@ def transform(inputs: dict, config: dict) -> dict:
         cells: list[str] = []
         for ck in cols:
             if rk == ck:
-                v = 0.0  # diagonal — see comment above
+                v = self_share.get(rk, 0.0)
                 cells.append(_heatmap_cell(v, is_diag=True))
             else:
                 v = overlap.get((rk, ck), 0.0)
