@@ -12,17 +12,16 @@ Sections are loaded in dependency order:
   4. views        — kpi_bar, table_controls, perf_table, insights_section,
                     questions_section, placeholder_card, footer
 
-Each component file is self-contained (no inter-component imports) so an
-MCP serving this dashboard can stream them one at a time. The orchestrator
-plus its section helper (_sections.py) are the only multi-file pieces.
+Each component file is self-contained (no inter-component imports). The
+orchestrator plus its section helper (_sections.py) are the only
+multi-file pieces.
 
 Usage:
     python3 assemble.py --inputs <inputs_dir> --out <output.html>
 
 The inputs directory must contain `config.json` with `stores` and
-`window` keys, plus per-store JSON dumps from the TrackBee MCP. See
-`skills/dashboards/ad-performance/build_full_ad_performance_dashboard.md`
-for the exact file list.
+`window` keys, plus per-store JSON dumps from the TrackBee MCP. See the
+skill's `SKILL.md` two levels up for the exact file list.
 """
 
 from __future__ import annotations

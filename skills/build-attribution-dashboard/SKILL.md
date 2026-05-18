@@ -13,7 +13,7 @@ description: >-
 
 # Build the Attribution Dashboard
 
-Produces the TrackBee Attribution Report as one Live Artifact in a single pass. Pulls every component file and every MCP data call in one parallel batch, assembles, hands off.
+Produces the TrackBee Attribution Report as one Live Artifact in a single pass. Every component file — layout, transforms, insights, charts, assembler — ships with this skill under `resources/`. The skill dispatches the data calls in one parallel batch (plus one dependent batch for dynamic per-channel journey calls), runs the assembler, and hands off.
 
 The final report contains:
 
@@ -26,23 +26,31 @@ The final report contains:
 
 All values are in store currency. The 3-day / 7-day / 28-day filter buttons in the header are client-side; the dashboard ships with all three windows populated.
 
+## Skill base directory
+
+Every path below is relative to this skill's directory. Set `SKILL_DIR` to its absolute path before assembling:
+
+- **Installed as a plugin** — `SKILL_DIR` is the plugin's skill install path; Claude announces it at skill load.
+- **Driven via the TrackBee MCP** after the build kit has been cloned — `SKILL_DIR=/tmp/trackbee-claude-plugin/skills/build-attribution-dashboard`.
+
+Components live at `$SKILL_DIR/resources/{chrome,charts,transforms,insights,orchestrators}/`. No staging copy is needed — the assembler reads its siblings by relative path.
+
 ## What to say to the user
 
-- **Opening line (after the user picks the store, before the upfront expectation gate):** _"Setting up the attribution dashboard for <Store Name>. Going to ask one quick question first, then I'll start the build."_
-- **While the build is running:** _"Pulling everything now — about two to five minutes."_
-- **At hand-off:** the two-sentence headline described in "Hand off" below. Nothing before it.
-
-Words to never say to the user (use the alternatives in parentheses): "phase" / "step" / "Step 1" / "Step 2" (just describe the work), "playbook" (use "build"), "MCP calls" (use "data" or just describe what's loading), "scorecard" (a retired model used this word — it doesn't exist here), "load the tools" (say "set up the dashboard"), "skeleton" (this build has no skeleton — don't reference the concept), "components" / "templates" (the user doesn't care; say "layout" or just describe the work). If you need a TodoWrite list, mirror the same vocabulary — "set up the dashboard", "pull the data", "hand off". Never "Step 1", never "MCP data", never "headline scorecard".
+- **Opening line, after store selection and before the expectation gate:** "Pulling the attribution dashboard for `<Store Name(s)>`. One quick confirmation, then the build runs."
+- **Expectation gate (via `AskUserQuestion`):** "Builds in parallel; usually three to six minutes, longer for stores with many channels or high event volume. Continue?" Options: `Yes, build it` / `No, stop here`.
+- **During the build:** silent. No status narration.
+- **Hand-off (after the artifact is ready):** open with the headline described in "Hand off" below. Two or three sentences of data — blended ROAS for the window, the channel with the largest in-platform vs server-side gap, and one journey-pattern observation. No preamble.
 
 ## Workflow
 
 ### Pick the store and confirm the build
 
-Call `list_my_stores`. Ask the user which store via `AskUserQuestion` (one option per accessible store; skip the popup if they only have one store and confirm in a single sentence).
+Call `tool__list_my_stores`. Ask the user which store via `AskUserQuestion` (one option per accessible store; skip the popup if they only have one store and confirm in a single sentence).
 
 Then — **before fetching anything else** — use `AskUserQuestion` to set time expectations and get an explicit yes:
 
-> "Building the attribution dashboard for <store name>. Pulls everything in parallel so it usually takes two to five minutes; longer for high-spend accounts. Want to continue?"
+Use the exact gate wording from "What to say to the user" above.
 
 Options: `Yes, build it` / `No, stop here`.
 
@@ -50,16 +58,15 @@ If **No**, stop. If **Yes**, proceed.
 
 Default window: **28 days ending yesterday**. Compute start/end as ISO strings for the 3d, 7d, and 28d windows.
 
-Stage the shared input + component directories:
+Stage the inputs directory:
 
 - `/tmp/full_inputs/` — MCP responses **and** `config.json`.
-- `/tmp/dashboard_components/` — fetched components.
 
 Write `/tmp/full_inputs/config.json`:
 
 ```json
 {
-  "store_name": "<Store name from list_my_stores>",
+  "store_name": "<Store name from tool__list_my_stores>",
   "store_currency": "<EUR|USD|GBP|...>",
   "fx_to_eur": {},
   "windows": {
@@ -70,38 +77,14 @@ Write `/tmp/full_inputs/config.json`:
 }
 ```
 
-### Fetch everything in one parallel batch
+### Fetch all data in one parallel batch
 
-**Dispatch every call below in a single assistant message.** Component file reads and MCP data calls are independent — fan them out together. Sequential dispatch turns a few-minute build into a half-hour one; do not do it.
-
-**Component file reads (`resource__get_component`)** — save each to `/tmp/dashboard_components/<same-relative-path>`. The assembler reads its siblings by relative path, so keep the `chrome/`, `charts/`, `transforms/`, `insights/`, `orchestrators/` directory structure intact when staging:
-
-- `dashboards/attribution/chrome/shell.html`
-- `dashboards/attribution/chrome/theme.css`
-- `dashboards/attribution/chrome/format_helpers.js`
-- `dashboards/attribution/chrome/render_sections.js`
-- `dashboards/attribution/chrome/window_filter.js`
-- `dashboards/attribution/chrome/sankey_filter.js`
-- `dashboards/attribution/chrome/tooltip.js`
-- `dashboards/attribution/chrome/logos.py`
-- `dashboards/attribution/charts/nc_roas_line.js`
-- `dashboards/attribution/orchestrators/assemble.py`
-- `dashboards/attribution/transforms/blended_kpis.py`
-- `dashboards/attribution/transforms/platform_tiles.py`
-- `dashboards/attribution/transforms/channel_attribution.py`
-- `dashboards/attribution/transforms/daily_nc_roas.py`
-- `dashboards/attribution/transforms/journey_kpis.py`
-- `dashboards/attribution/transforms/journey_heatmap.py`
-- `dashboards/attribution/transforms/journey_sankey.py`
-- `dashboards/attribution/insights/channel_attribution.py`
-- `dashboards/attribution/insights/executive_summary.py`
-- `dashboards/attribution/insights/cooccurrence.py`
-- `dashboards/attribution/insights/journey.py`
+**Dispatch every call below in a single assistant message.** Sequential dispatch turns a few-minute build into a half-hour one; do not do it.
 
 **MCP data calls** — save each response to `/tmp/full_inputs/`.
 
 > **Save the full MCP response verbatim.** Do not unwrap, flatten, or
-> hand-edit the payload before writing it to disk. `get_dashboard_overview`
+> hand-edit the payload before writing it to disk. `tool__get_dashboard_overview`
 > in particular returns `{"store_currency": ..., "overview": {...}}` —
 > save *that* whole object. The assembler's `_load_raw` handles JSON-RPC
 > envelopes (`{"result": {...}}`), the native `{"overview": {...}}`
@@ -112,20 +95,20 @@ Write `/tmp/full_inputs/config.json`:
 
 | Filename                  | Tool                            | Notes |
 | ------------------------- | ------------------------------- | ----- |
-| `overview.json`           | `get_dashboard_overview`        | 28d window. Authoritative spend / revenue / platform_statistics. |
-| `overview_7d.json`        | `get_dashboard_overview`        | 7d. |
-| `overview_3d.json`        | `get_dashboard_overview`        | 3d. |
-| `daily.json`              | `get_daily_store_statistics`    | Pass `column_groups=["core","funnel","customer_segments","platform_totals"]`. 28d. |
-| `funnel.json`             | `get_funnel_overview`           | 28d, `compare_previous_period=true`. |
-| `funnel_7d.json`          | `get_funnel_overview`           | 7d, `compare_previous_period=true`. |
-| `funnel_3d.json`          | `get_funnel_overview`           | 3d, `compare_previous_period=true`. |
-| `platform_funnel.json`    | `get_platform_funnel_breakdown` | 28d. |
-| `platform_funnel_7d.json` | `get_platform_funnel_breakdown` | 7d. |
-| `platform_funnel_3d.json` | `get_platform_funnel_breakdown` | 3d. |
-| `meta.json`               | `get_meta_campaign_insights`    | 28d. |
-| `meta_7d.json` / `meta_3d.json`     | `get_meta_campaign_insights`    | 7d / 3d. |
-| `google.json`             | `get_google_campaign_insights`  | 28d. |
-| `google_7d.json` / `google_3d.json` | `get_google_campaign_insights`  | 7d / 3d. |
+| `overview.json`           | `tool__get_dashboard_overview`        | 28d window. Authoritative spend / revenue / platform_statistics. |
+| `overview_7d.json`        | `tool__get_dashboard_overview`        | 7d. |
+| `overview_3d.json`        | `tool__get_dashboard_overview`        | 3d. |
+| `daily.json`              | `tool__get_daily_store_statistics`    | Pass `column_groups=["core","funnel","customer_segments","platform_totals"]`. 28d. |
+| `funnel.json`             | `tool__get_funnel_overview`           | 28d, `compare_previous_period=true`. |
+| `funnel_7d.json`          | `tool__get_funnel_overview`           | 7d, `compare_previous_period=true`. |
+| `funnel_3d.json`          | `tool__get_funnel_overview`           | 3d, `compare_previous_period=true`. |
+| `platform_funnel.json`    | `tool__get_platform_funnel_breakdown` | 28d. |
+| `platform_funnel_7d.json` | `tool__get_platform_funnel_breakdown` | 7d. |
+| `platform_funnel_3d.json` | `tool__get_platform_funnel_breakdown` | 3d. |
+| `meta.json`               | `tool__get_meta_campaign_insights`    | 28d. |
+| `meta_7d.json` / `meta_3d.json`     | `tool__get_meta_campaign_insights`    | 7d / 3d. |
+| `google.json`             | `tool__get_google_campaign_insights`  | 28d. |
+| `google_7d.json` / `google_3d.json` | `tool__get_google_campaign_insights`  | 7d / 3d. |
 
 **Customer-journey data (7 base calls)** — use the SAME `start` / `end` dates as the 28-day window above. The journey tools take a max one-month window, so they align naturally with the rest of the dashboard.
 
@@ -146,7 +129,7 @@ On any tool error, write `{"result": {}}` to the file — the assembler renders 
 ### Assemble
 
 ```bash
-python3 /tmp/dashboard_components/dashboards/attribution/orchestrators/assemble.py \
+python3 "$SKILL_DIR/resources/orchestrators/assemble.py" \
   --inputs /tmp/full_inputs/ \
   --out    "<workspace>/<store-slug>-attribution-<YYYY-MM-DD>.html"
 ```
@@ -162,7 +145,7 @@ The orchestrator degrades gracefully on missing inputs: sections whose data didn
 
 ### Hand off
 
-Print the `computer://` link. Read out one or two of the strongest insights — the headline blended ROAS with its delta, plus the single most striking journey insight (e.g. "62% of orders are still single-touch" or "Meta opens 71% of multi-touch journeys"). Two sentences max — don't paraphrase the dashboard, it's the deliverable.
+Print the `computer://` link, then deliver the hand-off described in "What to say to the user": two or three sentences carrying the blended ROAS for the window, the channel with the largest in-platform vs server-side gap, and one journey-pattern observation (e.g. "62% of orders are still single-touch" or "Meta opens 71% of multi-touch journeys"). No preamble, no paraphrasing — the dashboard is the deliverable.
 
 ---
 
@@ -172,8 +155,7 @@ If the user picks "No" at the upfront expectation gate, do not start the build. 
 
 ## Guidelines
 
-- **Skill is leading.** The component paths above are the ONLY paths to fetch. Do not invent variants.
 - **Bundle config.json inside `/tmp/full_inputs/`.** The assembler reads it from there. Do not pass `--config` separately unless overriding.
-- **One parallel batch.** Component reads and MCP data calls go out in a single assistant message. The only acceptable split is the dynamic per-channel journey calls that depend on `touchpoints.json`.
+- **One parallel batch.** All MCP data calls go out in a single assistant message. The only acceptable split is the dynamic per-channel journey calls that depend on `touchpoints.json`.
 - **Customer Journeys uses the same window as the 28-day section.** The journey tools take a max one-month window; the 3-day / 7-day filter does not apply to that section because the data isn't refetched per filter — call it out if the user asks.
-- **Hand off short.** `computer://` link + one or two sentences of the strongest insight.
+- **Hand off short.** `computer://` link + two or three data-led sentences per "What to say to the user".

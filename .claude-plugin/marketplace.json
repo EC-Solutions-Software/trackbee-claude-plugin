@@ -4,7 +4,7 @@
   "plugins": [{
     "name": "trackbee-claude-plugin",
     "source": "./",
-    "description": "TrackBee dashboards for Claude — Ad Performance (cross-platform Meta + Google campaign analysis with Scale/Hold/Refresh/Pause recommendations and sortable table) and Attribution (blended KPIs, NC-ROAS trend, channel attribution, journey Sankey + heatmap, executive summary). Both render as self-contained Live Artifact HTML reports.",
+    "description": "TrackBee Insights dashboards as a Claude plugin. Ships two Live Artifact reports — an Ad Performance dashboard covering Meta and Google campaign-level metrics with Scale/Hold/Refresh/Pause recommendations and a sortable per-campaign table, and an Attribution dashboard covering blended KPIs, NC-ROAS trend, channel attribution, customer-journey Sankey, and a daily heatmap. Both render as self-contained HTML.",
     "version": "3.1.0"
   }]
 }
