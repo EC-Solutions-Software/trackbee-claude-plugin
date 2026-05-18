@@ -43,13 +43,14 @@ def takeaways(inputs: dict) -> list[str]:
     ad_spend  = blended.get("ad_spend") or 0
     roas      = blended.get("roas") or 0
     rev_prev  = blended.get("_revenue_prev")
+    sym       = blended.get("currency_symbol") or "€"
 
     # 1. Headline performance
     delta = _delta_phrase(revenue, rev_prev)
     out.append(
-        f"Generated <strong>€{revenue:,.0f}</strong> in revenue from "
+        f"Generated <strong>{sym}{revenue:,.0f}</strong> in revenue from "
         f"<strong>{int(orders):,}</strong> orders on "
-        f"<strong>€{ad_spend:,.0f}</strong> of ad spend "
+        f"<strong>{sym}{ad_spend:,.0f}</strong> of ad spend "
         f"(Blended ROAS <strong>{roas:.2f}</strong>){delta}."
     )
 
@@ -97,7 +98,7 @@ def takeaways(inputs: dict) -> list[str]:
         er = max(earned, key=lambda r: r.get("rev_tb") or 0)
         out.append(
             f"<strong>{er['channel']}</strong> contributes "
-            f"<strong>€{er['rev_tb']:,.0f}</strong> in assisted revenue with no media spend — "
+            f"<strong>{sym}{er['rev_tb']:,.0f}</strong> in assisted revenue with no media spend — "
             f"investigate its incremental contribution."
         )
 

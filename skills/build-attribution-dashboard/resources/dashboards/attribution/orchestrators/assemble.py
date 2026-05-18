@@ -63,9 +63,15 @@ def _read_json(path: Path) -> dict:
 def _load_raw(inputs_dir: Path, name: str) -> dict:
     """Load `<name>.json` and return the inner MCP payload.
 
-    Accepts both `{"result": {...}}` (JSON-RPC envelope Claude sometimes
-    writes) and the unwrapped payload. Missing file → empty dict so the
-    transforms degrade to em-dash output instead of erroring.
+    Tolerates three shapes so this works regardless of how Claude saved the
+    file:
+
+      1. ``{"result": {...}}``           — JSON-RPC envelope
+      2. ``{"overview": {...}, ...}``    — get_dashboard_overview native shape
+      3. ``{...}``                       — already-unwrapped payload
+
+    Missing file → empty dict so transforms degrade to em-dash output
+    instead of erroring.
     """
     path = inputs_dir / name
     if not path.is_file():
@@ -73,8 +79,20 @@ def _load_raw(inputs_dir: Path, name: str) -> dict:
     data = _read_json(path)
     if not isinstance(data, dict):
         return {}
+    # JSON-RPC envelope
     if "result" in data and isinstance(data["result"], dict):
-        return data["result"]
+        data = data["result"]
+    # get_dashboard_overview wraps its payload under an "overview" key.
+    # Only unwrap for overview files so we don't accidentally flatten other
+    # payloads that may carry a top-level "overview" field for a different
+    # reason. Currency context lives on the outer envelope — copy it down
+    # so the inner payload remains self-describing.
+    if name.startswith("overview") and isinstance(data.get("overview"), dict):
+        inner = dict(data["overview"])
+        for k in ("store_currency", "currency"):
+            if k in data and k not in inner:
+                inner[k] = data[k]
+        return inner
     return data
 
 
@@ -107,14 +125,16 @@ def _load_all_raws(inputs_dir: Path) -> dict:
         "touchpoints":           _load_raw(inputs_dir, "touchpoints.json"),
     }
     # Journey breakdowns: load one j_<platform>.json per channel that
-    # appeared in the interactions payload (union of `leading` and
-    # `related` across transitions + cooccurrence). Missing files are
-    # tolerated — the transform skips them.
+    # appeared in the interactions payload. ``transitions`` rows are
+    # directional ("leading"/"related"); ``cooccurrence`` rows are
+    # symmetric ("a"/"b"). Walk all four keys so channels that appear
+    # only in cooccurrence still get a journey file loaded.
+    # Missing files are tolerated — the transform skips them.
     touchpoints = raws.get("touchpoints") or {}
     seen: list[str] = []
     for bucket in ("cooccurrence", "transitions"):
         for row in touchpoints.get(bucket) or []:
-            for side in ("leading", "related"):
+            for side in ("leading", "related", "a", "b"):
                 name = row.get(side)
                 if not name or name in ("order", "organic") or name in seen:
                     continue

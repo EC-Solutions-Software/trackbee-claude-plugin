@@ -21,7 +21,7 @@ The final report contains:
 2. **Blended Overview** — 14 KPI tiles plus the daily NC ROAS line chart.
 3. **Platform Overview** — one tile group per ad platform with nine in-platform KPIs each.
 4. **Channel Attribution** — TrackBee first-party vs. in-platform table with insight card.
-5. **Customer Journeys** — journey KPIs, channel touch-points heatmap, sankey path visualisation. Aligned with the 28-day window.
+5. **Customer Journeys** — journey KPIs, channel touch-points heatmap, sankey path visualisation. Aligned with the 28-day window. Off-diagonal cells in the heatmap show the share of orders where both channels appeared in the path; diagonal cells show the share where the same channel touched the shopper more than once.
 6. **Footer notes** — caveats on currency, attribution differences, and the journeys window.
 
 All values are in store currency. The 3-day / 7-day / 28-day filter buttons in the header are client-side; the dashboard ships with all three windows populated.
@@ -99,6 +99,14 @@ Write `/tmp/full_inputs/config.json`:
 - `dashboards/attribution/insights/journey.py`
 
 **MCP data calls** — save each response to `/tmp/full_inputs/`.
+
+> **Save the full MCP response verbatim.** Do not unwrap, flatten, or
+> hand-edit the payload before writing it to disk. `get_dashboard_overview`
+> in particular returns `{"store_currency": ..., "overview": {...}}` —
+> save *that* whole object. The assembler's `_load_raw` handles JSON-RPC
+> envelopes (`{"result": {...}}`), the native `{"overview": {...}}`
+> wrapper, and already-unwrapped payloads. Touching the shape by hand
+> breaks the contract and tends to render zeros.
 
 **Per-window data (14 calls)**
 

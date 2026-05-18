@@ -11,6 +11,54 @@ Output values are store-currency UNITS (cents / 100).
 from __future__ import annotations
 
 
+# ISO 4217 → display symbol. Mirrors the Intl.NumberFormat output the JS
+# side produces via format_helpers.js so the exec summary text matches the
+# KPI tiles. Unknown codes fall back to the raw ISO code + space.
+_CURRENCY_SYMBOL: dict[str, str] = {
+    "EUR": "€",
+    "USD": "$",
+    "GBP": "£",
+    "JPY": "¥",
+    "CNY": "¥",
+    "CHF": "CHF ",
+    "SEK": "kr ",
+    "NOK": "kr ",
+    "DKK": "kr ",
+    "AUD": "A$",
+    "CAD": "C$",
+    "NZD": "NZ$",
+    "BRL": "R$",
+    "INR": "₹",
+    "MXN": "Mex$",
+    "ZAR": "R",
+    "PLN": "zł ",
+    "TRY": "₺",
+    "RUB": "₽",
+    "KRW": "₩",
+    "SGD": "S$",
+    "HKD": "HK$",
+    "TWD": "NT$",
+    "ILS": "₪",
+    "AED": "د.إ ",
+    "SAR": "﷼ ",
+    "THB": "฿",
+    "PHP": "₱",
+    "IDR": "Rp ",
+    "MYR": "RM ",
+    "VND": "₫",
+    "CZK": "Kč ",
+    "HUF": "Ft ",
+    "RON": "lei ",
+    "BGN": "лв ",
+    "HRK": "kn ",
+    "UAH": "₴",
+    "ARS": "AR$",
+    "CLP": "CL$",
+    "COP": "CO$",
+    "PEN": "S/ ",
+}
+
+
 def _step_count(funnel_obj: dict, step: str) -> int:
     for entry in funnel_obj.get("funnel", []):
         if entry.get("step") == step:
@@ -60,7 +108,12 @@ def transform(inputs: dict, config: dict) -> dict:
     co       = _step_count(cur,  "total_checkout_started_events")
     co_prev  = _step_count(prev, "total_checkout_started_events")
 
+    currency_code = (config.get("store_currency") or "EUR").upper()
+    currency_symbol = _CURRENCY_SYMBOL.get(currency_code, currency_code + " ")
+
     return {
+        "currency": currency_code,
+        "currency_symbol": currency_symbol,
         "ad_spend": ad_spend,
         "revenue": revenue,
         "orders": orders,
