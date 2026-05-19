@@ -2,7 +2,7 @@
 
 > **This is a public repository.** Source code, skill bodies, and dashboard assets here are visible to anyone on the internet. Do not commit anything you would not paste into a public forum.
 
-TrackBee Insights dashboards as a Claude plugin. Two skills that turn a Shopify store's TrackBee data into a self-contained Live Artifact HTML report:
+TrackBee Insights skills that build self-contained Live Artifacts as a Claude plugin. Current skills:
 
 - **`build-ad-performance-dashboard`** — cross-platform Meta + Google campaign analysis with a sortable per-campaign / per-ad table, KPI bar, and Scale / Hold / Refresh / Pause recommendations.
 - **`build-attribution-dashboard`** — blended KPIs, daily NC-ROAS trend, platform tiles, channel attribution, and customer-journey Sankey + heatmap.

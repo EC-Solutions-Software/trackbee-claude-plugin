@@ -1,6 +1,0 @@
-{
-  "name": "trackbee-claude-plugin",
-  "private": true,
-  "description": "TrackBee dashboard skills for Claude — Ad Performance and Attribution dashboards.",
-  "version": "3.1.0"
-}
