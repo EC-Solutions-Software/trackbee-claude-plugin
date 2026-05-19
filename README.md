@@ -7,10 +7,6 @@ TrackBee Insights dashboards as a Claude plugin. Two skills that turn a Shopify 
 - **`build-ad-performance-dashboard`** — cross-platform Meta + Google campaign analysis with a sortable per-campaign / per-ad table, KPI bar, and Scale / Hold / Refresh / Pause recommendations.
 - **`build-attribution-dashboard`** — blended KPIs, daily NC-ROAS trend, platform tiles, channel attribution, and customer-journey Sankey + heatmap.
 
-## Install
-
-The plugin is published to the TrackBee Claude marketplace defined in `.claude-plugin/marketplace.json`. Install it in your Claude client and invoke either skill by name.
-
 ## Layout
 
 ```
@@ -25,7 +21,3 @@ skills/
 ```
 
 Each `SKILL.md` is the source of truth for the build it drives. Resource files are self-contained (no inter-component imports) so the orchestrator can load them by relative path.
-
-## Contributing
-
-Bug reports and improvements welcome via issues and pull requests on this repo. Please do not include real store IDs, customer data, or screenshots that expose private metrics in any issue or PR.
