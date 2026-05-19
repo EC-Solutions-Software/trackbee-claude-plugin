@@ -1,5 +1,5 @@
 ---
-name: build-attribution-dashboard
+name: attribution
 description: >-
   Produce the TrackBee Attribution Dashboard — a self-contained Live Artifact
   HTML report that shows cross-channel attribution: blended KPIs, daily NC-ROAS
@@ -31,7 +31,7 @@ All values are in store currency. The 3-day / 7-day / 28-day filter buttons in t
 Every path below is relative to this skill's directory. Set `SKILL_DIR` to its absolute path before assembling:
 
 - **Installed as a plugin** — `SKILL_DIR` is the plugin's skill install path; Claude announces it at skill load.
-- **Driven via the TrackBee MCP** after the build kit has been cloned — `SKILL_DIR=/tmp/trackbee-claude-plugin/skills/build-attribution-dashboard`.
+- **Driven via the TrackBee MCP** after the build kit has been cloned — `SKILL_DIR=/tmp/trackbee-claude-plugin/skills/attribution`.
 
 Components live at `$SKILL_DIR/resources/{chrome,charts,transforms,insights,orchestrators}/`. No staging copy is needed — the assembler reads its siblings by relative path.
 
