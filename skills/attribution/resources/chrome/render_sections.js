@@ -148,6 +148,72 @@
     insightList('cooccurInsights', journeysData.cooccur_insights);
   }
 
+  function funnel(w) {
+    w = w || {};
+    var tag = el('funnelWindowTag');
+    if (tag) tag.textContent = w.label || '';
+
+    var summary = w.funnel_summary || {};
+    var topEl = el('funnelTopToOrder');
+    if (topEl) topEl.textContent = fmt.pct(summary.top_to_order_rate || 0);
+
+    var worstStepEl = el('funnelWorstStep');
+    var worstRateEl = el('funnelWorstRate');
+    if (summary.worst_to_label && summary.worst_rate != null) {
+      if (worstStepEl) worstStepEl.textContent = summary.worst_to_label;
+      if (worstRateEl) worstRateEl.textContent =
+        '(' + fmt.pct(summary.worst_rate) + ' conversion from the previous step)';
+    } else {
+      if (worstStepEl) worstStepEl.textContent = '—';
+      if (worstRateEl) worstRateEl.textContent = '';
+    }
+
+    var stages = w.funnel_stages || [];
+    var drops = w.funnel_drops || [];
+    var dropByTo = {};
+    for (var di = 0; di < drops.length; di++) dropByTo[drops[di].to_step] = drops[di];
+    var topCount = (stages[0] && stages[0].count) || 1;
+
+    var rowsHtml = stages.map(function (s, i) {
+      var widthPct = topCount ? Math.max(0.5, (s.count / topCount) * 100) : 0;
+      var drop = dropByTo[s.step];
+      var isWorst = drop && summary.worst_to_label === s.label;
+      var convHtml = '';
+      if (i === 0) {
+        convHtml = '<div class="funnel-conv"><span class="fc-meta">Top of funnel</span></div>';
+      } else if (drop) {
+        var rate = drop.rate || 0;
+        var cls = '';
+        if (rate < 0.25) cls = 'warn';
+        else if (rate >= 0.6) cls = 'good';
+        convHtml = '<div class="funnel-conv">'
+          + '<span class="fc-rate ' + cls + '">' + fmt.pct(rate) + '</span>'
+          + '<span class="fc-meta">from ' + drop.from_label + ' — ' + fmt.num(drop.lost) + ' lost</span>'
+          + '<span class="fc-top">' + fmt.pct(s.rate_from_top || 0) + ' of page views reach this step</span>'
+          + '</div>';
+      }
+      var labelInside = widthPct >= 22;
+      var labelHtml = labelInside
+        ? '<span class="funnel-bar-label">' + fmt.num(s.count) + '</span>'
+        : '<span class="funnel-bar-label outside">' + fmt.num(s.count) + '</span>';
+      var fillCls = s.count > 0 ? '' : 'empty';
+      return '<div class="funnel-stage' + (isWorst ? ' worst' : '') + '">'
+        +   '<div class="fs-stage-label">'
+        +     '<span>' + s.label + '</span>'
+        +     '<span class="fs-stage-count">' + fmt.num(s.count) + ' events</span>'
+        +   '</div>'
+        +   '<div class="funnel-bar-track">'
+        +     '<div class="funnel-bar-fill ' + fillCls + '" style="width:' + widthPct.toFixed(2) + '%"></div>'
+        +     labelHtml
+        +   '</div>'
+        +   convHtml
+        + '</div>';
+    }).join('');
+    setHTML('funnelList', rowsHtml);
+
+    insightList('funnelInsights', w.funnel_insights);
+  }
+
   TB.render = {
     exec: exec,
     blended: blended,
@@ -156,5 +222,6 @@
     insightList: insightList,
     caveatLine: caveatLine,
     journeys: journeys,
+    funnel: funnel,
   };
 })();

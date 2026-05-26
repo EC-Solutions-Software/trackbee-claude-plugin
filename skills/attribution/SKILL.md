@@ -4,10 +4,12 @@ description: >-
   Produce the TrackBee Attribution Dashboard — a self-contained Live Artifact
   HTML report that shows cross-channel attribution: blended KPIs, daily NC-ROAS
   trend, platform tiles, channel attribution table, journey Sankey + heatmap,
-  and executive-summary insights. Use this skill whenever someone asks to
+  store funnel analysis with stage-specific fix-it insights, and
+  executive-summary insights. Use this skill whenever someone asks to
   "build the attribution dashboard", wants to see customer journeys across
-  Meta / Google / organic / email, asks about NC-ROAS, MER, channel mix, or
-  says "how do my channels stack up", "show the customer journey", "build an
+  Meta / Google / organic / email, asks about NC-ROAS, MER, channel mix,
+  where the funnel is leaking, or says "how do my channels stack up",
+  "show the customer journey", "where is my funnel leaking", "build an
   attribution report".
 ---
 
@@ -22,7 +24,8 @@ The final report contains:
 3. **Platform Overview** — one tile group per ad platform with nine in-platform KPIs each.
 4. **Channel Attribution** — TrackBee first-party vs. in-platform table with insight card.
 5. **Customer Journeys** — journey KPIs, channel touch-points heatmap, sankey path visualisation. Aligned with the 28-day window. Off-diagonal cells in the heatmap show the share of orders where both channels appeared in the path; diagonal cells show the share where the same channel touched the shopper more than once.
-6. **Footer notes** — caveats on currency, attribution differences, and the journeys window.
+6. **Store Funnel Analysis** — page-view → product-view → add-to-cart → checkout-started → orders ladder with per-stage counts, drop-off rates, and the biggest leak called out with stage-specific fix-it insights. Responds to the 3d / 7d / 28d filter.
+7. **Footer notes** — caveats on currency, attribution differences, and the journeys window.
 
 All values are in store currency. The 3-day / 7-day / 28-day filter buttons in the header are client-side; the dashboard ships with all three windows populated.
 

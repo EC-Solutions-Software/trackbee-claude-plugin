@@ -15,6 +15,7 @@
     R.platforms   && R.platforms(w.platforms);
     R.attribution && R.attribution(w.channels);
     R.insightList && R.insightList('chInsights', w.ch_insights);
+    R.funnel      && R.funnel(w);
     R.caveatLine  && R.caveatLine(w);
   }
 

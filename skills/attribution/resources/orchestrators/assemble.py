@@ -215,6 +215,19 @@ def _build_exec_takeaways(blended: dict, channels: list[dict]) -> list[str]:
     return mod.takeaways(inputs={"blended": blended, "channels": channels})
 
 
+def _build_store_funnel(window_inputs: dict, config: dict) -> dict:
+    mod = _load_module(TRANSFORMS / "store_funnel.py")
+    return mod.transform(
+        inputs={"funnel": window_inputs["funnel"]},
+        config=config,
+    )
+
+
+def _build_store_funnel_insights(drops: list[dict]) -> list[dict]:
+    mod = _load_module(INSIGHTS / "store_funnel.py")
+    return mod.insights(drops)
+
+
 def _build_daily_nc_roas_28d(raws: dict, config: dict) -> list[dict]:
     """Run the daily_nc_roas transform once for the 28d window."""
     mod = _load_module(TRANSFORMS / "daily_nc_roas.py")
@@ -406,16 +419,32 @@ def build(inputs_dir: Path, config: dict) -> str:
         channels  = _build_channels(win_in, config)
         ch_insights = _build_channel_insights(channels)
         exec_takeaways = _build_exec_takeaways(blended, channels)
+        # Funnel: only build for windows whose funnel JSON was actually
+        # fetched. _window_inputs() falls back to the 28d funnel when the
+        # suffixed file is missing — letting that fallback through would
+        # mislabel 28d data as 3d/7d. Empty payload otherwise so the
+        # section renders an empty state instead of zeros.
+        funnel_key = "funnel" if key == "28d" else f"funnel_{key}"
+        if raws.get(funnel_key):
+            funnel = _build_store_funnel(win_in, config)
+            funnel_insights = _build_store_funnel_insights(funnel["drops"])
+        else:
+            funnel = {"stages": [], "drops": [], "summary": {}}
+            funnel_insights = []
         payloads[key] = {
-            "label":          {"3d": "Last 3 days", "7d": "Last 7 days", "28d": "Last 28 days"}[key],
-            "start":          cfg.get("start", ""),
-            "end":            cfg.get("end", ""),
-            "blended":        blended,
-            "platforms":      platforms,
-            "channels":       channels,
-            "ch_insights":    ch_insights,
-            "exec_takeaways": exec_takeaways,
-            "daily_nc_roas":  _slice_nc_roas(daily_28d, key),
+            "label":           {"3d": "Last 3 days", "7d": "Last 7 days", "28d": "Last 28 days"}[key],
+            "start":           cfg.get("start", ""),
+            "end":             cfg.get("end", ""),
+            "blended":         blended,
+            "platforms":       platforms,
+            "channels":        channels,
+            "ch_insights":     ch_insights,
+            "exec_takeaways":  exec_takeaways,
+            "daily_nc_roas":   _slice_nc_roas(daily_28d, key),
+            "funnel_stages":   funnel["stages"],
+            "funnel_drops":    funnel["drops"],
+            "funnel_summary":  funnel["summary"],
+            "funnel_insights": funnel_insights,
         }
 
     # Journeys are not window-scoped (the channel-interactions payload

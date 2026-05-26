@@ -90,11 +90,37 @@
 
     {JOURNEYS_SECTION}
 
+    <!-- Store Funnel Analysis -->
+    <div class="card">
+      <h2>Store Funnel Analysis <span class="pill" id="funnelWindowTag">28 days</span></h2>
+      <div class="meta" style="margin-bottom:14px">From page view to order — where shoppers drop off and where to focus optimisation.</div>
+
+      <div class="funnel-summary">
+        <div>
+          <span class="fs-label">Top to order</span><br>
+          <span class="fs-value" id="funnelTopToOrder">—</span>
+          <span class="meta">conversion (page view → order)</span>
+        </div>
+        <div>
+          <span class="fs-label">Biggest leak</span><br>
+          <span class="fs-value warn" id="funnelWorstStep">—</span>
+          <span class="meta" id="funnelWorstRate"></span>
+        </div>
+      </div>
+
+      <div class="funnel-list" id="funnelList"></div>
+
+      <div class="insight-card">
+        <h3>Key insights from your store funnel</h3>
+        <ul class="insight-list" id="funnelInsights"></ul>
+      </div>
+    </div>
+
     <!-- Footer notes -->
     <footer class="page-footer footnote">
       TrackBee Attribution Report · <span id="caveatWindow">—</span> · Generated {GENERATED_DATE}<br>
       <span style="font-size:10px">
-        Window filter affects Blended Overview, Platform Overview, and Channel Attribution.
+        Window filter affects Blended Overview, Platform Overview, Channel Attribution, and Store Funnel Analysis.
         Customer Journeys uses a fixed 90-day server-side lookback — that section does not change with the filter.
         In-platform numbers come from each ad platform's own reporting; TrackBee numbers come from first-party click-id matching — both views are valid, the gap is the point.
         <code>checkout_started</code> is currently tracked client-side only; counts may understate the true number of checkout starts.
