@@ -5,7 +5,7 @@
 TrackBee Insights skills as a Claude plugin. Current skills:
 
 - **`build-ad-performance-dashboard`** — cross-platform Meta + Google campaign analysis with a sortable per-campaign / per-ad table, KPI bar, and Scale / Hold / Refresh / Pause recommendations.
-- **`attribution`** — blended KPIs, daily NC-ROAS trend, platform tiles, channel attribution, and customer-journey Sankey + heatmap.
+- **`attribution`** — blended KPIs, daily NC-ROAS trend, platform tiles, channel attribution, customer-journey Sankey + heatmap, and store funnel analysis with stage-specific fix-it insights.
 - **`audit-creatives`** — detect fatigue, measure creative lifetime, compare content types per product, and suggest what to create next.
 - **`diagnose-audience-health`** — investigate delivery/audience problems: frequency, reach saturation, and audience overlap across ad sets.
 
