@@ -1,15 +1,127 @@
+# =============================================================================
+# Security-sensitive: never commit anything matching these patterns.
+# This repo is mirrored to a public GitHub repo. A single committed secret
+# is a worst-case outcome. Gitleaks runs as a release gate, but defense in
+# depth — keep these patterns conservative.
+# =============================================================================
+
+# Environment files (frequent home for API keys, DB URLs, tokens)
+.env
+.env.*
+*.env
+!*.env.example
+!*.env.sample
+
+# Generic secret-bearing files
+secrets/
+secrets.*
+*.secret
+*.secret.*
+*-secret.*
+*-secrets.*
+credentials.json
+credentials.yaml
+credentials.yml
+*credentials*.json
+*credentials*.yaml
+service-account*.json
+*service_account*.json
+*service-account*.json
+*.kdbx
+
+# Keys and certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.pfx
+*.p12
+*.jks
+*.keystore
+
+# SSH and signing keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*_rsa
+*_dsa
+*_ecdsa
+*_ed25519
+!*.pub
+.netrc
+
+# Cloud provider local credential stores
+.aws/
+.gcloud/
+.gcp/
+gcp-key*.json
+application_default_credentials.json
+*adc*.json
+
+# Tokens / auth
+*.token
+*token*.json
+*token*.yaml
+auth.json
+.npmrc
+.pypirc
+
+# =============================================================================
+# Local development scratch (gitignored so nothing accidentally rides along).
+# =============================================================================
+
+# Personal / project-local workspaces
+local/
+.local/
+scratch/
+notes/
+TODO.md
+NOTES.md
+
+# Caches
+.cache/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.tox/
+
 # Python build artifacts
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+build/
+dist/
+
+# Node (in case JS tooling is added later)
+node_modules/
+
+# Database dumps & local data
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+*.dump
+*.bak
+*.backup
+*.orig
+
+# Logs and tmp output
+*.log
+*.tmp
+*.temp
+*.html.tmp
 
 # Editor / OS junk
 .DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
 .vscode/
 .idea/
 *.swp
+*.swo
 *~
-
-# Scratch outputs
-*.html.tmp

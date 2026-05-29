@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Attribution Report · {STORE_NAME}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Brand v3 stack: Lexend (display) + Plus Jakarta Sans (body) + JetBrains Mono (tags/eyebrows). -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>{INLINE_THEME_CSS}</style>
+</head>
+<body>
+  <!-- Payload + helpers must run before any renderer registers. -->
+  <script>window.TB_DATA = {INLINE_TB_DATA_JSON};</script>
+  <script>{INLINE_FORMAT_HELPERS_JS}</script>
+
+  <div class="wrap">
+
+    <!-- Header -->
+    <div class="card hdr">
+      <div class="brand">
+        <div class="brand-wordmark">{BRAND_WORDMARK}</div>
+        <div class="brand-divider"></div>
+        <div>
+          <h1>Attribution Report</h1>
+          <div class="meta">{STORE_NAME}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        {WINDOW_FILTER}
+      </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="exec-summary">
+      <h2>Executive Summary <span class="pill" id="execWindowTag">28 days</span></h2>
+      <ol id="execTakeaways"></ol>
+    </div>
+
+    <!-- Blended Overview -->
+    <div class="card">
+      <h2>Blended Overview <span class="pill">All sources combined</span></h2>
+      <div class="kpis" id="kpiBlended"></div>
+
+      <div class="chart-block">
+        <div class="chart-block-header">
+          <div>
+            <h3>Blended NC ROAS (Acquisition MER) over time</h3>
+            <div class="meta">Daily new-customer revenue ÷ daily ad spend.</div>
+          </div>
+          <div class="chart-stat">
+            <span class="kpi-label">Period avg</span>
+            <span class="kpi-value" id="ncRoasPeriodAvg" style="font-size:18px">—</span>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><div id="ncRoasInline"></div></div>
+      </div>
+    </div>
+
+    <!-- Platform Overview -->
+    <div class="card">
+      <h2>Platform Overview <span class="pill">In-platform reporting</span></h2>
+      <div id="platformTiles"></div>
+    </div>
+
+    <!-- Channel Attribution -->
+    <div class="card">
+      <h2>Channel Attribution</h2>
+      <table class="tb">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th class="num">Sessions</th>
+            <th class="num"><span class="col-icon">{LOGO_TRACKBEE}</span>TrackBee Purchases</th>
+            <th class="num">Purchases<br><span class="col-sub">(in-platform)</span></th>
+            <th class="num"><span class="col-icon">{LOGO_TRACKBEE}</span>TrackBee Revenue</th>
+            <th class="num">Revenue<br><span class="col-sub">(in-platform)</span></th>
+            <th class="num">Spend<br><span class="col-sub">(in-platform)</span></th>
+            <th class="num">CPA<br><span class="col-sub">(in-platform)</span></th>
+            <th class="num">ROAS<br><span class="col-sub">(in-platform)</span></th>
+          </tr>
+        </thead>
+        <tbody id="attrBody"></tbody>
+      </table>
+
+      <div class="insight-card">
+        <h3>Key insights from your channel attribution</h3>
+        <ul id="chInsights" class="insight-list"></ul>
+      </div>
+    </div>
+
+    {JOURNEYS_SECTION}
+
+    <!-- Footer notes -->
+    <footer class="page-footer footnote">
+      TrackBee Attribution Report · <span id="caveatWindow">—</span> · Generated {GENERATED_DATE}<br>
+      <span style="font-size:10px">
+        Window filter affects Blended Overview, Platform Overview, and Channel Attribution.
+        Customer Journeys uses a fixed 90-day server-side lookback — that section does not change with the filter.
+        In-platform numbers come from each ad platform's own reporting; TrackBee numbers come from first-party click-id matching — both views are valid, the gap is the point.
+        <code>checkout_started</code> is currently tracked client-side only; counts may understate the true number of checkout starts.
+        Spend converted to store currency per-ad-account using the FX rates supplied in config.json.
+      </span>
+      {LOW_SAMPLE_CAVEAT}
+    </footer>
+
+  </div>
+
+  <div class="tb-tooltip" id="tbTooltip" role="tooltip" aria-hidden="true"></div>
+
+  <!-- Section renderers register on window.TB.render.* -->
+  <script>{INLINE_RENDER_SECTIONS_JS}</script>
+  <script>{INLINE_NC_ROAS_JS}</script>
+  <!-- Filter glue runs after renderers are registered -->
+  <script>{INLINE_WINDOW_FILTER_JS}</script>
+  <script>{INLINE_SANKEY_FILTER_JS}</script>
+  <script>{INLINE_TOOLTIP_JS}</script>
+</body>
+</html>
