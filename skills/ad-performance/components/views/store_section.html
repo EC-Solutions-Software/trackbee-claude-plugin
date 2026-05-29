@@ -1,0 +1,31 @@
+<!-- One <section> per store. The orchestrator stamps the substitutions; the
+     filter handlers are wired by chrome/render_filters.js via data-action. -->
+<section class="store-section" id="store-{STORE_ID}" style="display:none">
+  {KPI_BAR}
+
+  <div class="table-controls">
+    <div class="plat-tabs">
+      <button class="plat-tab active" data-action="filter-platform" data-plat="all"    data-store="{STORE_ID}">All Platforms</button>
+      <button class="plat-tab"        data-action="filter-platform" data-plat="meta"   data-store="{STORE_ID}">Meta</button>
+      <button class="plat-tab"        data-action="filter-platform" data-plat="google" data-store="{STORE_ID}">Google</button>
+    </div>
+    <div class="status-filter">
+      <label>
+        <input type="checkbox" id="hide-zero-{STORE_ID}" data-action="toggle-zero" data-store="{STORE_ID}" checked>
+        Hide zero-spend
+      </label>
+      <input type="text" class="search-box" id="search-{STORE_ID}" data-action="search" data-store="{STORE_ID}" placeholder="Filter by name…">
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="perf-table" id="table-{STORE_ID}">
+      <thead>{THEAD}</thead>
+      <tbody id="tbody-{STORE_ID}">{ROWS}</tbody>
+    </table>
+  </div>
+
+  <div class="section-heading" style="margin-top:32px">Performance Analysis</div>
+  {INSIGHTS}
+  {QUESTIONS}
+</section>

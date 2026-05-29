@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ad Performance Dashboard — TrackBee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap">
+<style>
+{INLINE_THEME_CSS}
+</style>
+</head>
+<body data-first-store="{FIRST_STORE_ID}">
+
+<header class="page-header">
+  {LOGO_BLOCK}
+  <span class="header-divider"></span>
+  <span class="report-title">Ad Performance Dashboard</span>
+  <span class="header-spacer"></span>
+  <span class="date-pill">{DATE_PILL}</span>
+  <span class="generated">Generated {GENERATED_AT}</span>
+</header>
+
+<nav class="store-nav" id="storeNav">
+{NAV_TABS}
+</nav>
+
+<main class="main">
+{STORE_SECTIONS}
+</main>
+
+<footer class="page-footer">
+  TrackBee Ad Performance Dashboard · {DATE_LABEL} · Generated {GENERATED_AT}<br>
+  <span style="font-size:10px">Spend &amp; ROAS = platform-reported. Revenue = 1d-click attribution (Meta) / conversion value (Google).
+  MER = TrackBee multi-touch. Daily budget not available via API — Avg Daily Spend shown instead.
+  Checkout Initiated not available via campaign insights API.</span>
+</footer>
+
+<script>
+{INLINE_FILTERS_JS}
+</script>
+<script>
+{INLINE_TABLE_JS}
+</script>
+<script>
+{INLINE_QUESTIONS_JS}
+</script>
+</body>
+</html>

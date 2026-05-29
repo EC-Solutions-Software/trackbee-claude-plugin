@@ -1,0 +1,247 @@
+/* TrackBee Attribution Report — theme tokens.
+ * Aligned to TrackBee brand guidelines v3 · April 2026.
+ * Brand display palette, ink extensions, semantic colors, and Honeycomb
+ * radius/type scale all live on :root so engineering can read the same
+ * tokens as Figma. Sentence case in content is enforced by source copy,
+ * not CSS. */
+:root {
+  color-scheme: light;
+
+  /* Brand display palette (unchanged hex values from v2; backgrounds only) */
+  --navy:      #0D1245;
+  --lavender:  #F0F2FF;
+  --pink:      #FF1F6B;
+  --yellow:    #FFCC00;
+  --sky:       #3D9EFF;
+
+  /* Accessible ink extensions — used whenever a brand hue acts as text
+   * or small UI on a light surface (all clear ≥4.5:1 on white). */
+  --pink-ink:  #C8124B;
+  --honey-ink: #7A5C00;
+  --blue-ink:  #0066CC;
+
+  /* Honeycomb base/* mapping — what Figma binds to. */
+  --ink:           var(--navy);          /* body / heading text */
+  --ink-2:         #2A2F5C;              /* secondary text — tinted navy */
+  --ink-muted:     #737373;              /* base/muted-foreground */
+  --line:          #E5E5E5;              /* base/border */
+  --surface-0:     #FAFAFA;              /* base/card */
+  --surface-1:     #FFFFFF;              /* base/background */
+  --surface-muted: #F5F5F5;              /* base/muted */
+
+  /* Aliases kept for backwards compatibility with components that still
+   * reference the old token names. Mapped to brand v3 equivalents. */
+  --accent:    var(--blue-ink);          /* text/icon accent on light */
+  --accent-bg: var(--sky);               /* fill accent on dark */
+  --blue-tint: var(--lavender);          /* soft fills, heatmap low end */
+  --gold:      var(--honey-ink);         /* yellow-hued text */
+
+  /* Semantic colors (4.5:1 on white). */
+  --success: #027A48;
+  --warning: #B54708;
+  --error:   #B42318;
+  --info:    var(--blue-ink);
+
+  /* Brand-site typography stack — Lexend display, Plus Jakarta body,
+   * JetBrains Mono for tags / eyebrows / code. System fallbacks pick
+   * up gracefully in live-artifact mode where Google Fonts is blocked. */
+  --font-display: 'Lexend', 'Inter Tight', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body:    'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Bricolage Grotesque', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Honeycomb radius scale. */
+  --radius-sm:   6px;   /* inputs, small chips */
+  --radius-md:   8px;   /* inset cards */
+  --radius-lg:   10px;  /* main cards */
+  --radius-xl:   12px;  /* highlight surfaces */
+  --radius-4xl:  32px;  /* primary buttons */
+  --radius-full: 9999px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--surface-0);color:var(--ink);
+  font-family:var(--font-body);font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+.wrap{max-width:1280px;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:18px}
+
+/* Cards — Honeycomb rounded-lg (10px). */
+.card{background:var(--surface-1);border:1px solid var(--line);
+  border-radius:var(--radius-lg);padding:18px 20px}
+
+/* Display headings — Lexend, semibold, sentence case (source enforced). */
+h1{font-family:var(--font-display);font-size:30px;line-height:36px;margin:0 0 4px;
+  font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+h2{font-family:var(--font-display);font-size:20px;line-height:28px;margin:0 0 14px;
+  font-weight:600;letter-spacing:-0.01em;color:var(--ink);
+  display:flex;align-items:center;gap:10px}
+
+/* Eyebrow pill next to section titles — JetBrains Mono, navy on lavender. */
+h2 .pill{font-family:var(--font-mono);font-size:12px;font-weight:600;
+  padding:3px 10px;border-radius:var(--radius-full);
+  background:var(--lavender);color:var(--ink);letter-spacing:0.02em;text-transform:none}
+
+.meta{color:var(--ink-muted);font-size:12px;line-height:18px}
+
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-wordmark{display:flex;align-items:center}
+.brand-wordmark svg{display:block}
+.brand-wordmark-text{font-family:var(--font-display);font-weight:700;font-size:20px;
+  color:var(--ink);letter-spacing:-0.01em}
+.brand-divider{width:1px;height:32px;background:var(--line)}
+
+/* Window filter — segmented control. Active segment uses navy fill with
+ * yellow label (10.5:1 — AAA per brand v3 contrast matrix). */
+.filter{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-full);
+  overflow:hidden;background:var(--surface-1);padding:2px}
+.filter button{font:inherit;font-family:var(--font-body);font-weight:500;font-size:12px;
+  padding:6px 14px;border:none;background:transparent;color:var(--ink-2);
+  cursor:pointer;border-radius:var(--radius-full);transition:background .12s,color .12s}
+.filter button.active{background:var(--ink);color:var(--yellow)}
+
+.sankey-filter{display:inline-flex;flex-wrap:wrap;gap:6px}
+.sankey-filter button{font:inherit;font-family:var(--font-body);font-weight:500;font-size:12px;
+  padding:6px 12px;border:1px solid var(--line);background:var(--surface-1);
+  color:var(--ink-2);cursor:pointer;border-radius:var(--radius-md);transition:all .12s}
+.sankey-filter button.active{background:var(--ink);color:var(--yellow);border-color:var(--ink)}
+.sankey-filter button:hover:not(.active){background:var(--lavender)}
+
+/* KPI tiles — main card radius. Value uses Lexend display weight. */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.kpi{background:var(--surface-1);border:1px solid var(--line);
+  border-radius:var(--radius-lg);padding:12px 14px}
+.kpi-label{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);
+  text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.kpi-value{font-family:var(--font-display);font-size:24px;font-weight:600;
+  margin-top:6px;letter-spacing:-0.01em;color:var(--ink)}
+.kpi-sub{font-size:12px;color:var(--ink-muted);margin-top:4px;line-height:18px}
+
+/* Deltas use semantic colors from brand v3. */
+.delta-up{color:var(--success);font-weight:500}
+.delta-dn{color:var(--error);font-weight:500}
+
+/* Platform blocks within Platform Overview. */
+.platform-block{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.platform-block:first-child{margin-top:0;padding-top:0;border-top:none}
+.platform-name{font-family:var(--font-display);font-size:16px;font-weight:600;
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--ink)}
+.platform-name svg{display:inline-block;vertical-align:middle}
+
+/* Tables. Header rows are eyebrows: JetBrains Mono, uppercase. */
+table.tb{width:100%;border-collapse:collapse;font-size:14px}
+table.tb th,table.tb td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+table.tb th{font-family:var(--font-mono);font-weight:600;color:var(--ink-2);
+  background:var(--surface-0);font-size:12px;text-transform:uppercase;letter-spacing:0.04em}
+table.tb th .col-icon{display:inline-block;vertical-align:-3px;margin-right:5px}
+table.tb th .col-sub{font-weight:400;text-transform:none;letter-spacing:0;
+  font-size:12px;color:var(--ink-muted);font-family:var(--font-body)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.tb tr.overall{background:var(--lavender);font-weight:600}
+table.tb tr.overall td{border-bottom:none}
+.row-icon{display:inline-flex;align-items:center;gap:6px}
+
+/* Heatmap — gradient runs lavender → navy. Header cells use eyebrow style. */
+.heatmap{border-collapse:separate;border-spacing:2px;font-size:12px;width:100%}
+.heatmap th{font-family:var(--font-mono);font-weight:600;color:var(--ink-muted);
+  text-align:left;padding:6px 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.04em}
+.heatmap th:first-child{width:110px}
+.heatmap .hcell{padding:8px;text-align:center;border-radius:var(--radius-sm);
+  font-variant-numeric:tabular-nums}
+.heatmap .diag{background:var(--ink);color:var(--yellow);font-weight:600}
+
+/* Confidence pill — lavender chip, navy text. */
+.confidence{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;
+  border-radius:var(--radius-full);background:var(--lavender);color:var(--ink);
+  font-size:12px;font-weight:600;font-family:var(--font-mono);letter-spacing:0.02em}
+
+/* Chart block inside a card. */
+.chart-block{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.chart-block-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+  margin-bottom:14px;flex-wrap:wrap}
+.chart-block-header h3{font-family:var(--font-display);font-size:16px;font-weight:600;
+  margin:0 0 4px;color:var(--ink);letter-spacing:-0.005em}
+.chart-stat{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.chart-canvas-wrap{position:relative;height:240px;width:100%}
+
+/* Sankey card. */
+.sankey-card #journeySankey{width:100%;min-height:720px}
+.sankey-legend{font-size:12px;color:var(--ink-muted);margin-top:6px;line-height:1.55}
+
+/* Insight card — highlight surface, brand v3 radius rounded-xl (12px). */
+.insight-card{margin-top:14px;padding:18px 22px;background:var(--lavender);
+  border:1px solid #D6DCFA;border-radius:var(--radius-xl)}
+.insight-card h3{font-family:var(--font-display);font-size:16px;margin:0 0 14px;
+  font-weight:600;letter-spacing:-0.005em;color:var(--ink);text-transform:none}
+.insight-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px}
+.insight-item{padding:12px 14px;background:var(--surface-1);border:1px solid #D6DCFA;
+  border-radius:var(--radius-lg);display:grid;grid-template-columns:8px 1fr;gap:10px}
+.insight-bullet{width:8px;background:var(--accent);border-radius:var(--radius-md);align-self:stretch}
+.insight-obs{color:var(--ink);font-size:14px;line-height:22px}
+.insight-act{margin-top:6px;font-size:12px;color:var(--ink-2);line-height:18px;
+  padding-top:8px;border-top:1px dashed var(--line)}
+.insight-act:before{content:"Recommended action: ";font-family:var(--font-mono);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.06em;font-size:12px;color:var(--accent);
+  display:inline-block;margin-right:4px}
+
+/* Executive summary — navy panel. Brand rule: yellow eyebrow + numbering
+ * on navy (AAA at 10.5:1), white body (AAA at 16.9:1). */
+.exec-summary{padding:18px 22px;
+  background:linear-gradient(180deg,var(--ink) 0%,#11173F 100%);
+  color:#FFFFFF;border-radius:var(--radius-xl);border:1px solid var(--ink)}
+.exec-summary h2{color:#FFFFFF !important;font-family:var(--font-display);font-size:20px;
+  margin:0 0 12px;font-weight:600;letter-spacing:-0.01em;text-transform:none}
+.exec-summary h2 .pill{font-family:var(--font-mono);background:rgba(255,204,0,0.18);
+  color:var(--yellow);letter-spacing:0.04em}
+.exec-summary ol{margin:0;padding:0;list-style:none;counter-reset:exec;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.exec-summary li{counter-increment:exec;background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius-lg);
+  padding:12px 14px;font-size:14px;line-height:22px;color:rgba(255,255,255,0.86)}
+.exec-summary li:before{content:counter(exec);display:block;font-family:var(--font-mono);
+  font-weight:600;font-size:12px;color:var(--yellow);letter-spacing:0.06em;margin-bottom:6px}
+.exec-summary strong{color:#FFFFFF}
+
+/* Footnote / page footer. */
+.footnote{color:var(--ink-muted);font-size:12px;line-height:1.6}
+.footnote ul{margin:6px 0 0 18px;padding:0}
+.page-footer{padding:14px 18px;border-top:1px solid var(--line);
+  color:var(--ink-muted);font-size:12px;line-height:1.6;text-align:left}
+.page-footer code{font-family:var(--font-mono);font-size:12px;background:var(--surface-muted);
+  padding:1px 4px;border-radius:var(--radius-sm)}
+
+/* Mini wordmark caption — eyebrow style. */
+.wordmark{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);
+  letter-spacing:0.08em;text-transform:uppercase;font-weight:600}
+
+/* Tooltip — navy fill, white body, yellow title for AAA contrast. */
+.tb-tooltip{position:fixed;pointer-events:none;z-index:9999;
+  background:var(--ink);color:#FFFFFF;border:1px solid rgba(255,255,255,0.10);
+  border-radius:var(--radius-md);padding:8px 10px;font-family:var(--font-body);
+  font-size:12px;line-height:1.45;max-width:280px;
+  box-shadow:0 8px 28px rgba(13,18,69,0.32);
+  opacity:0;transform:translateY(-2px);
+  transition:opacity .08s ease, transform .08s ease;
+  white-space:pre-line;font-variant-numeric:tabular-nums}
+.tb-tooltip.visible{opacity:1;transform:translateY(0)}
+.tb-tooltip strong{color:var(--yellow);font-weight:600;display:block;margin-bottom:2px}
+svg .tb-hit{fill:transparent;stroke:none;cursor:default}
+[data-tip]{cursor:default}
+
+@media (max-width:640px){.wrap{padding:12px}}
+
+/* Data-unavailable notice — shown when a section's required input
+ * didn't reach the build script. Uses a soft yellow surface with
+ * Honey ink text for AA contrast on light, and a yellow-tinted panel
+ * with off-white text inside the exec-summary's navy surface. */
+.data-unavailable{padding:18px 22px;background:#FFF8E1;border:1px solid #F2D88A;
+  border-radius:var(--radius-lg);color:var(--honey-ink);
+  font-family:var(--font-body);font-size:14px;line-height:1.5;
+  display:flex;flex-direction:column;gap:6px}
+.data-unavailable-title{font-family:var(--font-display);font-weight:600;font-size:14px;
+  color:var(--honey-ink)}
+.data-unavailable-body{color:var(--honey-ink)}
+.exec-summary .data-unavailable{background:rgba(255,204,0,0.18);
+  border-color:rgba(255,204,0,0.40);color:#FFE9A8}
+.exec-summary .data-unavailable-title{color:#FFE9A8}
+.exec-summary .data-unavailable-body{color:#FFE9A8}

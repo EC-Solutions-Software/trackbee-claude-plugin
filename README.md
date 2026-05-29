@@ -1,29 +1,30 @@
 # TrackBee Claude Plugin
 
-> **This is a public repository.** Source code, skill bodies, and dashboard assets here are visible to anyone on the internet. Do not commit anything you would not paste into a public forum.
+TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name>` slash command — the plugin provides the trigger. An active TrackBee Insights connection is required. Type any of the following:
 
-TrackBee Insights skills as a Claude plugin. Current skills:
+- `/get-started` — onboarding entry point: pick a store and route to the right skill.
+- `/discover-insights` — surface what TrackBee Insights can answer and route to the right skill.
+- `/ad-performance` — build the Ad Performance Dashboard: Meta + Google campaigns with KPI bar, sortable per-campaign / per-ad table, and Scale / Hold / Refresh / Pause recommendations, packaged as one Live Artifact.
+- `/attribution` — build the Attribution Report: Executive Summary, Blended Overview, Platform Overview, Channel Attribution, and Customer Journeys, packaged as one self-contained Live Artifact.
+- `/performance` — investigate ad-account performance: diagnose drops, surface what changed, and recommend next moves.
+- `/audit-creatives` — detect fatigue, compare content types, measure creative lifetime, and propose what to create next.
+- `/diagnose-audience-health` — investigate frequency, reach saturation, and audience overlap across ad sets.
+- `/find-undervalued-ads` — surface high-performing creatives with low spend that deserve more budget.
+- `/scale-ads-profitably` — identify which ads to scale and at what cadence, based on ROAS, spend headroom, and audience saturation.
+- `/discuss-artifact` — answer follow-up questions about a Live Artifact already open in the conversation.
+- `/get-help-faq` — troubleshooting and FAQ for common questions and stuck states.
 
-- **`build-ad-performance-dashboard`** — cross-platform Meta + Google campaign analysis with a sortable per-campaign / per-ad table, KPI bar, and Scale / Hold / Refresh / Pause recommendations.
-- **`attribution`** — blended KPIs, daily NC-ROAS trend, platform tiles, channel attribution, customer-journey Sankey + heatmap, and store funnel analysis with stage-specific fix-it insights.
-- **`audit-creatives`** — detect fatigue, measure creative lifetime, compare content types per product, and suggest what to create next.
-- **`diagnose-audience-health`** — investigate delivery/audience problems: frequency, reach saturation, and audience overlap across ad sets.
+Skills that render a Live Artifact (`ad-performance`, `attribution`) ship their build pipeline here. Every other skill is a minimal `SKILL.md` that delegates to the TrackBee Insights MCP at invocation time.
 
 ## Layout
 
-```
+```markdown
 .claude-plugin/      plugin + marketplace manifests
 skills/
-  build-ad-performance-dashboard/
-    SKILL.md         build instructions
-    resources/       layout, transforms, insights, views, orchestrators
-  attribution/
-    SKILL.md         build instructions
-    resources/       layout, charts, transforms, insights, orchestrators
-  audit-creatives/
-    SKILL.md         playbook
-  diagnose-audience-health/
-    SKILL.md         playbook
+  <name>/
+    SKILL.md         skill body
+    components/      orchestrator, transforms, insights, charts, chrome
+    references/      specs, metric maps, hand-off templates
+    assets/          brand icon + wordmark
+    scripts/         entry script
 ```
-
-Each `SKILL.md` is the source of truth for the build it drives. Resource files are self-contained (no inter-component imports) so the orchestrator can load them by relative path.
