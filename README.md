@@ -4,7 +4,7 @@ TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name
 
 - `/get-started` — onboarding entry point: pick a store and route to the right skill.
 - `/discover-insights` — surface what TrackBee Insights can answer and route to the right skill.
-- `/ad-performance` — build the Ad Performance Dashboard: Meta + Google campaigns with KPI bar, sortable per-campaign / per-ad table, and Scale / Hold / Refresh / Pause recommendations, packaged as one Live Artifact.
+- `/analyze-ad-performance` — build the Ad Performance Dashboard: Meta + Google campaigns with KPI bar, sortable per-campaign / per-ad table, and Scale / Hold / Refresh / Pause recommendations, packaged as one Live Artifact.
 - `/attribution` — build the Attribution Report: Executive Summary, Blended Overview, Platform Overview, Channel Attribution, and Customer Journeys, packaged as one self-contained Live Artifact.
 - `/performance` — investigate ad-account performance: diagnose drops, surface what changed, and recommend next moves.
 - `/audit-creatives` — detect fatigue, compare content types, measure creative lifetime, and propose what to create next.
@@ -14,7 +14,7 @@ TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name
 - `/discuss-artifact` — answer follow-up questions about a Live Artifact already open in the conversation.
 - `/get-help-faq` — troubleshooting and FAQ for common questions and stuck states.
 
-Skills that render a Live Artifact (`ad-performance`, `attribution`) ship their build pipeline here. Every other skill is a minimal `SKILL.md` that delegates to the TrackBee Insights MCP at invocation time.
+Skills that render a Live Artifact (`analyze-ad-performance`, `attribution`) ship their build pipeline here. Every other skill is a minimal `SKILL.md` that delegates to the TrackBee Insights MCP at invocation time.
 
 ## Layout
 
