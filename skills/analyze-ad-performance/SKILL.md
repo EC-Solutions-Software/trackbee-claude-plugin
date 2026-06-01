@@ -1,5 +1,5 @@
 ---
-name: ad-performance
+name: analyze-ad-performance
 description: >-
   Generate a TrackBee-branded Ad Performance Dashboard — a self-contained
   HTML report showing all active campaigns, ad sets, and ads across Meta and
@@ -102,7 +102,7 @@ those live in `.html`, `.css`, and `.js` files under `components/chrome/`.
 
      ```
      Refresh the TrackBee Ad Performance Dashboard for <Store Name>
-     (store id <STORE_ID>) by running the /ad-performance skill end-to-end.
+     (store id <STORE_ID>) by running the /analyze-ad-performance skill end-to-end.
 
      CONTEXT
      - Store: <Store Name>, store_id = <STORE_ID>,
@@ -113,14 +113,14 @@ those live in `.html`, `.css`, and `.js` files under `components/chrome/`.
        Refetch live rates before staging the config — never reuse the
        previous run's hardcoded values.
      - Workspace folder: <WORKSPACE_PATH>.
-     - Entry script: $CLAUDE_PLUGIN_ROOT/.claude/skills/ad-performance/scripts/build_ad_performance.py.
+     - Entry script: $CLAUDE_PLUGIN_ROOT/.claude/skills/analyze-ad-performance/scripts/build_ad_performance.py.
 
      WINDOW — compute every run, do NOT hard-code
      - end = yesterday (today − 1 day local).
      - start = end − 6 days. Both inclusive (7 days total).
 
      PLAN
-     1. Invoke the /ad-performance skill against store <STORE_ID>
+     1. Invoke the /analyze-ad-performance skill against store <STORE_ID>
         using the window above. Use impersonate=<USER_ID>.
      2. Build the report HTML at
         <WORKSPACE_PATH>/<store-slug>-ad-performance-<YYYY-MM-DD>.html

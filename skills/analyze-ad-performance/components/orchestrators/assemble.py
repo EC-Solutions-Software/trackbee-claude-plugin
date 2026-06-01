@@ -15,7 +15,7 @@ import datetime as dt
 import importlib.util
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent.parent  # .../ad-performance/components/
+HERE = Path(__file__).resolve().parent.parent  # .../analyze-ad-performance/components/
 CHROME = HERE / "chrome"
 TRANSFORMS = HERE / "transforms"
 INSIGHTS = HERE / "insights"
