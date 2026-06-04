@@ -1,119 +1,206 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Attribution Report · {STORE_NAME}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Brand v3 stack: Lexend (display) + Plus Jakarta Sans (body) + JetBrains Mono (tags/eyebrows). -->
-  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>{INLINE_THEME_CSS}</style>
+<meta charset="utf-8">
+<title>Attribution Overview · {STORE_NAME}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Inter+Tight:wght@500;600&display=swap" rel="stylesheet">
+<!-- Chart.js and Plotly used to be loaded from jsDelivr here. The
+     NC-ROAS line chart and customer-journey sankey are now pre-rendered
+     as inline SVG in the Python build step, so this page renders with
+     no external scripts. Plotly/Chart.js can be re-added as a progressive
+     enhancement if richer interactivity is needed. -->
+<style>
+{THEME_CSS}
+</style>
 </head>
 <body>
-  <!-- Payload + helpers must run before any renderer registers. -->
-  <script>window.TB_DATA = {INLINE_TB_DATA_JSON};</script>
-  <script>{INLINE_FORMAT_HELPERS_JS}</script>
+<div class="wrap">
 
-  <div class="wrap">
-
-    <!-- Header -->
-    <div class="card hdr">
-      <div class="brand">
-        <div class="brand-wordmark">{BRAND_WORDMARK}</div>
-        <div class="brand-divider"></div>
-        <div>
-          <h1>Attribution Report</h1>
-          <div class="meta">{STORE_NAME}</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-        {WINDOW_FILTER}
+  <!-- Header -->
+  <div class="card hdr">
+    <div class="brand">
+      <div class="brand-wordmark">{LOGO_WORDMARK}</div>
+      <div class="brand-divider"></div>
+      <div>
+        <h1>Attribution Report</h1>
+        <div class="meta">{STORE_NAME}</div>
       </div>
     </div>
-
-    <!-- Executive Summary -->
-    <div class="exec-summary">
-      <h2>Executive Summary <span class="pill" id="execWindowTag">28 days</span></h2>
-      <ol id="execTakeaways"></ol>
-    </div>
-
-    <!-- Blended Overview -->
-    <div class="card">
-      <h2>Blended Overview <span class="pill">All sources combined</span></h2>
-      <div class="kpis" id="kpiBlended"></div>
-
-      <div class="chart-block">
-        <div class="chart-block-header">
-          <div>
-            <h3>Blended NC ROAS (Acquisition MER) over time</h3>
-            <div class="meta">Daily new-customer revenue ÷ daily ad spend.</div>
-          </div>
-          <div class="chart-stat">
-            <span class="kpi-label">Period avg</span>
-            <span class="kpi-value" id="ncRoasPeriodAvg" style="font-size:18px">—</span>
-          </div>
-        </div>
-        <div class="chart-canvas-wrap"><div id="ncRoasInline"></div></div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="filter" id="windowFilter" role="tablist">
+        <button data-w="3d">3 days</button>
+        <button data-w="7d">7 days</button>
+        <button data-w="28d" class="active">28 days</button>
       </div>
     </div>
-
-    <!-- Platform Overview -->
-    <div class="card">
-      <h2>Platform Overview <span class="pill">In-platform reporting</span></h2>
-      <div id="platformTiles"></div>
-    </div>
-
-    <!-- Channel Attribution -->
-    <div class="card">
-      <h2>Channel Attribution</h2>
-      <table class="tb">
-        <thead>
-          <tr>
-            <th>Channel</th>
-            <th class="num">Sessions</th>
-            <th class="num"><span class="col-icon">{LOGO_TRACKBEE}</span>TrackBee Purchases</th>
-            <th class="num">Purchases<br><span class="col-sub">(in-platform)</span></th>
-            <th class="num"><span class="col-icon">{LOGO_TRACKBEE}</span>TrackBee Revenue</th>
-            <th class="num">Revenue<br><span class="col-sub">(in-platform)</span></th>
-            <th class="num">Spend<br><span class="col-sub">(in-platform)</span></th>
-            <th class="num">CPA<br><span class="col-sub">(in-platform)</span></th>
-            <th class="num">ROAS<br><span class="col-sub">(in-platform)</span></th>
-          </tr>
-        </thead>
-        <tbody id="attrBody"></tbody>
-      </table>
-
-      <div class="insight-card">
-        <h3>Key insights from your channel attribution</h3>
-        <ul id="chInsights" class="insight-list"></ul>
-      </div>
-    </div>
-
-    {JOURNEYS_SECTION}
-
-    <!-- Footer notes -->
-    <footer class="page-footer footnote">
-      TrackBee Attribution Report · <span id="caveatWindow">—</span> · Generated {GENERATED_DATE}<br>
-      <span style="font-size:10px">
-        Window filter affects Blended Overview, Platform Overview, and Channel Attribution.
-        Customer Journeys uses a fixed 90-day server-side lookback — that section does not change with the filter.
-        In-platform numbers come from each ad platform's own reporting; TrackBee numbers come from first-party click-id matching — both views are valid, the gap is the point.
-        <code>checkout_started</code> is currently tracked client-side only; counts may understate the true number of checkout starts.
-        Spend converted to store currency per-ad-account using the FX rates supplied in config.json.
-      </span>
-      {LOW_SAMPLE_CAVEAT}
-    </footer>
-
   </div>
 
-  <div class="tb-tooltip" id="tbTooltip" role="tooltip" aria-hidden="true"></div>
+  <!-- Executive Summary -->
+  <div class="exec-summary">
+    <h2>Executive Summary <span class="pill" id="execWindowTag">28 days</span></h2>
+    <ol id="execTakeaways"></ol>
+  </div>
 
-  <!-- Section renderers register on window.TB.render.* -->
-  <script>{INLINE_RENDER_SECTIONS_JS}</script>
-  <script>{INLINE_NC_ROAS_JS}</script>
-  <!-- Filter glue runs after renderers are registered -->
-  <script>{INLINE_WINDOW_FILTER_JS}</script>
-  <script>{INLINE_SANKEY_FILTER_JS}</script>
-  <script>{INLINE_TOOLTIP_JS}</script>
+  <!-- Blended Overview -->
+  <div class="card">
+    <h2>Blended Overview <span class="pill">All sources combined</span></h2>
+    <div class="kpis" id="kpiBlended"></div>
+
+    <div class="chart-block">
+      <div class="chart-block-header">
+        <div>
+          <h3>Blended NC ROAS (Acquisition MER) over time</h3>
+          <div class="meta">Daily new-customer revenue ÷ daily ad spend.</div>
+        </div>
+        <div class="chart-stat">
+          <span class="kpi-label">Period avg</span>
+          <span class="kpi-value" id="ncRoasPeriodAvg" style="font-size:18px">—</span>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">{NC_ROAS_INLINE}</div>
+    </div>
+  </div>
+
+  <!-- Platform Overview -->
+  <div class="card">
+    <h2>Platform Overview <span class="pill">In-platform reporting</span></h2>
+    <div id="platformTiles"></div>
+  </div>
+
+  <!-- Channel Attribution -->
+  <div class="card">
+    <h2>Channel Attribution</h2>
+    <table class="tb">
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th class="num">Sessions</th>
+          <th class="num">Purchases</th>
+          <th class="num">Revenue</th>
+          <th class="num">Spend</th>
+          <th class="num">CPA</th>
+          <th class="num">ROAS</th>
+        </tr>
+      </thead>
+      <tbody id="attrBody"></tbody>
+    </table>
+
+    <div class="insight-card">
+      <h3>Key insights from your channel attribution</h3>
+      <ul id="chInsights"></ul>
+    </div>
+  </div>
+
+  <!-- Customer Journeys -->
+  {CUSTOMER_JOURNEYS_OPEN}
+    <h2>Customer Journeys</h2>
+
+    <div class="kpis" style="grid-template-columns:repeat(3, minmax(180px, 1fr));max-width:680px">
+      <div class="kpi">
+        <div class="kpi-label">Total customer journeys</div>
+        <div class="kpi-value">{J_TOTAL}</div>
+        <div class="kpi-sub">90-day lookback</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Single-touch share</div>
+        <div class="kpi-value">{J_SINGLE_PCT}</div>
+        <div class="kpi-sub">{J_SINGLE_SUB} journeys with one touchpoint</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Multi-touch share</div>
+        <div class="kpi-value">{J_MULTI_PCT}</div>
+        <div class="kpi-sub">{J_MULTI_SUB} journeys with 2+ touchpoints</div>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-weight:500;font-size:14px;margin:22px 0 4px;color:var(--ink-2)">
+      Channel touch points
+    </h3>
+    <div class="meta" style="margin-bottom:10px">When a customer interacts with platform A, how often do they interact with platform B?</div>
+    {HEATMAP}
+
+    <div class="insight-card">
+      <h3>Key insights from your channel touch points</h3>
+      <ul class="insight-list">{COOCCUR_INSIGHTS}</ul>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <div class="sankey-filter" id="sankeyFilter" role="tablist" style="margin-bottom:12px">
+        <button data-sf="multi" class="active">Multi-touch only</button>
+        <button data-sf="top5">Top 5 journeys</button>
+        <button data-sf="single">Single-touch only</button>
+        <button data-sf="all">All journeys</button>
+      </div>
+      <div id="journeySankey">{SANKEY_INLINE}</div>
+    </div>
+
+    <div class="insight-card">
+      <h3>Key insights from your customer journeys</h3>
+      <ul class="insight-list">{JOURNEY_INSIGHTS}</ul>
+    </div>
+  {CUSTOMER_JOURNEYS_CLOSE}
+
+  <!-- Store Funnel Analysis -->
+  <div class="card">
+    <h2>Store Funnel Analysis <span class="pill" id="funnelWindowTag">28 days</span></h2>
+    <div class="meta" style="margin-bottom:14px">From page view to order — where shoppers drop off and where to focus optimisation.</div>
+
+    <div class="funnel-summary">
+      <div>
+        <span class="fs-label">Top to order</span><br>
+        <span class="fs-value" id="funnelTopToOrder">—</span>
+        <span class="meta">conversion (page view → order)</span>
+      </div>
+      <div>
+        <span class="fs-label">Biggest leak</span><br>
+        <span class="fs-value warn" id="funnelWorstStep">—</span>
+        <span class="meta" id="funnelWorstRate"></span>
+      </div>
+    </div>
+
+    <div class="funnel-list" id="funnelList"></div>
+
+    <div class="insight-card">
+      <h3>Key insights from your store funnel</h3>
+      <ul class="insight-list" id="funnelInsights"></ul>
+    </div>
+  </div>
+
+  <!-- Suggested follow-up questions -->
+  <div class="card">
+    <h2>Where to go next <span class="pill">Click to ask</span></h2>
+    <div class="meta" style="margin-bottom:14px">Ready-made prompts to dive deeper into any of the areas above. Click to send the question or copy it to your clipboard.</div>
+    <div class="questions-list" id="questionsList"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="card footnote">
+    <strong style="color:var(--ink-2)">Caveats and methodology</strong>
+    <ul>
+      <li id="caveatWindow">—</li>
+      <li>Static snapshot generated on {BUILD_DATE}. To refresh, regenerate the file.</li>
+      <li>Window filter affects Blended Overview, Platform Overview, and Channel Attribution. Customer Journeys uses a fixed <strong>90-day server-side lookback</strong> — that section does not change when you switch the filter at the top.</li>
+      <li><code>checkout_started</code> is currently tracked client-side only — counts may understate the true number of checkout starts.</li>
+      <li>In-platform vs TrackBee numbers will not match. Meta and Google count via their own attribution; TrackBee counts via click-id matching. Both views are valid; the gap is the point.</li>
+      <li>Spend converted to EUR per-ad-account using the FX rates supplied in config.json.</li>
+      {LOW_SAMPLE_CAVEAT}
+    </ul>
+    <div class="wordmark" style="margin-top:14px">TrackBee · attribution-report</div>
+  </div>
+
+</div>
+
+<script>
+const PAGE_DATA = {PAGE_DATA_JSON};
+const SANKEY_VIEWS = {SANKEY_VIEWS_JSON};
+{APP_JS}
+</script>
+
+<div class="tb-tooltip" id="tbTooltip" role="tooltip" aria-hidden="true"></div>
+<script>
+{TOOLTIP_JS}
+</script>
 </body>
 </html>

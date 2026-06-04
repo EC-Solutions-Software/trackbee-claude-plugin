@@ -1,121 +1,77 @@
-"""Channel co-occurrence insights — pure observation/action rules.
-
-Reads the cooccurrence list assembled in ``touchpoints.json`` from
-``tool__get_platform_footprints`` (per-channel shares) and
-``tool__get_platform_breakdown`` (per-channel cooccurrence + transitions),
-and emits a list of {obs, act} dicts surfacing the strongest cross-channel
-pair, the most coupled channel, the most independent channel, and any
-asymmetric A→B vs B→A dependency in the transitions.
-
-Sample-size guard: a channel is skipped when it has fewer than
-``MIN_SAMPLE`` attributed orders in the recent window (when the caller
-passes ``orders_per_platform``). Without that data, every channel is fair
-game.
+"""Channel touch-point (co-occurrence) insights for the Attribution Overview
+report — most-coupled pair, channels that never convert alone, channels that
+can stand alone, and asymmetric dependencies. A per-platform order-count
+sample guard excludes thin channels. Pure string formatting — self-contained,
+stdlib only.
 """
 
-from __future__ import annotations
 
-
-MIN_SAMPLE = 50
-
-
-def _ins(obs: str, act: str) -> dict:
+def _ins(obs, act):
     return {"obs": obs, "act": act}
 
 
-def insights(touchpoints: dict, orders_per_platform: dict | None = None) -> list[dict]:
-    cooccur = (touchpoints or {}).get("cooccurrence") or []
-    transitions = (touchpoints or {}).get("transitions") or []
-    orders_per_platform = orders_per_platform or {}
+def build(touchpoints, plat_orders_28d, min_sample=50):
+    co = touchpoints["co_occurrence"]
 
-    # TrackBee uses "facebook" in the platform funnel but "meta" in the
-    # journey payload — normalise to "meta" for the sample-size guard.
-    orders_normalised = dict(orders_per_platform)
-    if "facebook" in orders_normalised:
-        orders_normalised["meta"] = orders_normalised.pop("facebook")
-
-    def _passes_sample(p: str) -> bool:
-        if not orders_normalised:
-            return True
-        return int(orders_normalised.get(p, 0) or 0) >= MIN_SAMPLE
-
-    # Pairwise overlap from cooccurrence — keep one direction per pair.
-    pair_overlap: dict[tuple[str, str], float] = {}
-    for row in cooccur:
-        a, b = row.get("leading"), row.get("related")
-        if not a or not b or a == "order" or b == "order":
+    co_pairs = []
+    for src_p, row in co.items():
+        if src_p == "no_platform" or plat_orders_28d.get(src_p, 0) < min_sample:
             continue
-        if not _passes_sample(a) or not _passes_sample(b):
-            continue
-        key = tuple(sorted([a, b]))
-        share_pct = float(row.get("share_of_orders") or 0.0) * 100.0
-        pair_overlap[key] = max(pair_overlap.get(key, 0.0), share_pct)
+        for tgt_p, v in row.items():
+            if tgt_p == "no_other_platform" or tgt_p == src_p:
+                continue
+            co_pairs.append(((src_p, tgt_p), v))
+    co_pairs.sort(key=lambda x: -x[1])
 
-    co_pairs = sorted(pair_overlap.items(), key=lambda x: -x[1])
-
-    # Per-channel total share across its appearances on any pair.
-    channel_overlap: dict[str, float] = {}
-    for (a, b), v in pair_overlap.items():
-        channel_overlap[a] = channel_overlap.get(a, 0.0) + v
-        channel_overlap[b] = channel_overlap.get(b, 0.0) + v
-
-    most_coupled = max(channel_overlap.items(), key=lambda x: x[1]) if channel_overlap else (None, 0.0)
-    most_independent = min(channel_overlap.items(), key=lambda x: x[1]) if channel_overlap else (None, 0.0)
-
-    # Asymmetric dependency from directional transitions — pick the largest
-    # gap between share_of_leading(A→B) and share_of_leading(B→A) where both
-    # are positive and the gap exceeds 20 percentage points.
-    leading_share: dict[tuple[str, str], float] = {}
-    for row in transitions:
-        a, b = row.get("leading"), row.get("related")
-        if not a or not b or b == "order":
-            continue
-        if not _passes_sample(a):
-            continue
-        leading_share[(a, b)] = float(row.get("share_of_leading") or 0.0) * 100.0
+    isolation = {p: row.get("no_other_platform", 0) for p, row in co.items()
+                 if p != "no_platform" and plat_orders_28d.get(p, 0) >= min_sample}
+    most_isolated = max(isolation.items(), key=lambda x: x[1]) if isolation else (None, 0)
+    least_isolated = min(isolation.items(), key=lambda x: x[1]) if isolation else (None, 0)
 
     asym_best = None
-    for (a, b), v_ab in leading_share.items():
-        v_ba = leading_share.get((b, a), 0.0)
-        if v_ba > 0 and (v_ab - v_ba) > 20:
-            if asym_best is None or (v_ab - v_ba) > asym_best[2]:
-                asym_best = (a, b, v_ab - v_ba, v_ab, v_ba)
+    for (a, b), v in co_pairs:
+        rev_v = co.get(b, {}).get(a, 0)
+        if rev_v > 0 and (v - rev_v) > 20:
+            if asym_best is None or (v - rev_v) > asym_best[2]:
+                asym_best = (a, b, v - rev_v, v, rev_v)
 
-    out: list[dict] = []
+    out = []
     if co_pairs:
-        (a, b), v = co_pairs[0]
+        a, b = co_pairs[0][0]
+        v = co_pairs[0][1]
         out.append(_ins(
-            f"<strong>{v:.1f}% of orders involve both {a.capitalize()} and {b.capitalize()}</strong> — "
-            f"the most coupled channel pair on the store.",
+            f"<strong>{v:.0f}% of customers who interact with {a.capitalize()} also interact with {b.capitalize()}</strong> — "
+            f"the most coupled pair on the store.",
             f"Treat {a.capitalize()} and {b.capitalize()} as a joint investment. Run an incrementality "
-            f"test by pausing one for two weeks to measure the overlap."
+            f"test by pausing one for two weeks to measure overlap."
         ))
-    if most_independent[0] is not None and most_independent[1] < (most_coupled[1] or 0) * 0.5:
-        p, v = most_independent
+    if least_isolated[0]:
+        p, v = least_isolated
         out.append(_ins(
-            f"<strong>{p.capitalize()}</strong> rarely overlaps with other channels.",
-            f"{p.capitalize()} is the strongest standalone-acquisition channel. Use it as the baseline when "
-            f"calibrating other channels' incremental contribution."
-        ))
-    if most_coupled[0] is not None and most_coupled[1] > 0:
-        p, v = most_coupled
-        out.append(_ins(
-            f"<strong>{p.capitalize()}</strong> overlaps with other channels more than any other channel "
-            f"in your stack.",
+            f"<strong>{p.capitalize()}</strong> rarely converts in isolation: only {v:.1f}% of "
+            f"{p.capitalize()} journeys have no other tracked touchpoint.",
             f"Do not measure {p.capitalize()} on standalone ROAS. Its contribution comes from the assists "
             f"it provides to other channels."
         ))
-    if asym_best:
-        a, b, _gap, v_ab, v_ba = asym_best
+    if most_isolated[0] and most_isolated[1] > 20:
+        p, v = most_isolated
         out.append(_ins(
-            f"<strong>Asymmetric dependency: {a.capitalize()} → {b.capitalize()}</strong> "
-            f"({v_ab:.0f}%) is far higher than the reverse ({v_ba:.0f}%).",
-            f"{a.capitalize()} reliably leads shoppers into {b.capitalize()}, but the reverse is rare. "
-            f"If consolidating spend, prioritise the lead-in channel."
+            f"<strong>{p.capitalize()}</strong> can convert independently: {v:.1f}% of its journeys involve "
+            f"no other channel.",
+            f"{p.capitalize()} is the strongest standalone-acquisition channel. Use it as the baseline when "
+            f"calibrating other channels' incremental contribution."
+        ))
+    if asym_best:
+        a, b, gap, v_ab, v_ba = asym_best
+        out.append(_ins(
+            f"<strong>Asymmetric dependency: {a.capitalize()} → {b.capitalize()}</strong> ({v_ab:.0f}%) "
+            f"is far higher than the reverse ({v_ba:.0f}%).",
+            f"{a.capitalize()} relies on {b.capitalize()} more than {b.capitalize()} relies on {a.capitalize()}. "
+            f"If consolidating spend, cut {a.capitalize()} before {b.capitalize()}."
         ))
     out.append(_ins(
-        "Off-diagonal values quantify how often two channels appear in the same customer journey.",
-        "Use this matrix to prioritise tests. High-overlap pairs benefit most from incrementality "
-        "experiments; low-overlap pairs can be optimised independently."
+        f"Off-diagonal values quantify how often two channels appear in the same customer journey.",
+        f"Use this matrix to prioritise tests. High-overlap pairs benefit most from incrementality "
+        f"experiments; low-overlap pairs can be optimised independently."
     ))
     return out
