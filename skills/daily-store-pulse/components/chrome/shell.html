@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily store pulse · {GENERATED_DATE}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>{INLINE_THEME_CSS}</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- PORTFOLIO HEADER (dark navy panel — combined verdict + who needs attention) -->
+    <div class="hero">
+      <div class="hero-row">
+        <div class="hero-brand-wordmark">{BRAND_WORDMARK}</div>
+        <div class="hero-date-pill">{DATE_PILL}</div>
+      </div>
+      <div class="eyebrow on-dark" style="margin-top:16px">Daily store pulse</div>
+      <h1>{PORTFOLIO_HEADLINE}</h1>
+      <div class="portfolio-verdict">{PORTFOLIO_VERDICT}</div>
+      {ATTENTION_STORES}
+    </div>
+
+    <!-- STORE FILTER (client-side show/hide, remembers your last choice) -->
+    <div class="filter-bar" id="storeFilter" data-artifact="{ARTIFACT_ID}">
+      <span class="filter-label">Stores</span>
+      {STORE_CHIPS}
+    </div>
+
+    <!-- PER-STORE PULSE CARDS -->
+    {STORE_CARDS}
+
+    <!-- FOOTER -->
+    <footer class="page-footer">
+      <span class="footer-wordmark">TrackBee daily store pulse</span><br>
+      {STORE_COUNT_LABEL} · Yesterday: {YESTERDAY_LABEL} · Baseline: trailing 7-day average ({BASELINE_LABEL}) · Generated {GENERATED_DATE}<br>
+      <span style="font-size:11px">
+        Data from TrackBee Insights, baked in at build time and refreshed daily at 08:00 by the scheduled task. Yesterday's figures compare against the trailing 7-day daily average. <code>checkout_started</code> is tracked client-side only, so funnel counts can understate true checkout starts. Profit and PoAS use your store's cost-of-goods settings; orders missing per-variant cost fall back to the store-level COGS percentage.
+      </span>
+    </footer>
+
+  </div>
+
+  <!-- Store filter glue: all / single / subset, persisted to localStorage -->
+  <script>{INLINE_STORE_FILTER_JS}</script>
+  <!-- Go-deeper dock glue: send-prompt in a live artifact, else copy -->
+  <script>{INLINE_DOCK_JS}</script>
+  <!-- Daily-revenue sparkline hover: marker + tooltip per day -->
+  <script>{INLINE_SPARK_JS}</script>
+
+</body>
+</html>

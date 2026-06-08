@@ -1,0 +1,21 @@
+
+            <div class="table-controls">
+              <div class="plat-tabs">
+                <button class="plat-tab active" data-action="filter-platform" data-plat="all" data-sid="{SID}">All platforms</button>
+                <button class="plat-tab" data-action="filter-platform" data-plat="meta" data-sid="{SID}">Meta</button>
+                <button class="plat-tab" data-action="filter-platform" data-plat="google" data-sid="{SID}">Google</button>
+              </div>
+              <div class="filter-extras">
+                <select class="fmt-select" id="fmt-{SID}" data-action="filter-format" data-sid="{SID}">
+                  <option value="all">All formats</option>
+                  {FMT_OPTS}
+                </select>
+                <input type="text" class="search-box" id="search-{SID}" data-action="filter-search" data-sid="{SID}" placeholder="Filter by ad name…">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="audit-table" id="table-{SID}">
+                <thead>{THEAD}</thead>
+                <tbody id="tbody-{SID}">{ROWS}</tbody>
+              </table>
+            </div>

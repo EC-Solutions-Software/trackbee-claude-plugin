@@ -107,8 +107,6 @@ those live in `.html`, `.css`, and `.js` files under `components/chrome/`.
      CONTEXT
      - Store: <Store Name>, store_id = <STORE_ID>,
        currency = <CCY>, currency_symbol = <SYMBOL>.
-     - Pass impersonate=<USER_ID> on every TrackBee MCP call (this is
-       the user the original run used).
      - Ad-account FX rates: meta_fx_to_store=<X>, google_fx_to_store=<Y>.
        Refetch live rates before staging the config — never reuse the
        previous run's hardcoded values.
@@ -121,7 +119,7 @@ those live in `.html`, `.css`, and `.js` files under `components/chrome/`.
 
      PLAN
      1. Invoke the /analyze-ad-performance skill against store <STORE_ID>
-        using the window above. Use impersonate=<USER_ID>.
+        using the window above.
      2. Build the report HTML at
         <WORKSPACE_PATH>/<store-slug>-ad-performance-<YYYY-MM-DD>.html
         (yesterday's date).

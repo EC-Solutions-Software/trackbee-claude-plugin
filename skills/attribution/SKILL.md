@@ -92,8 +92,6 @@ clickable follow-up prompts.
 
      CONTEXT
      - Store: <Store Name>, store_id = <STORE_ID>, store_currency = <CCY>.
-     - Pass impersonate=<USER_ID> on every TrackBee MCP call (this is the
-       user the original run used).
      - Ad-account FX: <FX_DICT> (e.g. {"GBP": 1.0, "EUR": 0.85}). Use a
        fresher rate if you have one.
      - Workspace folder: <WORKSPACE_PATH>
@@ -105,7 +103,7 @@ clickable follow-up prompts.
 
      PLAN
      1. Invoke the /attribution skill against store <STORE_ID> using
-        the windows above. Use impersonate=<USER_ID>.
+        the windows above.
      2. Build the report HTML at
         <WORKSPACE_PATH>/<store-slug>-attribution-overview-<YYYY-MM-DD>.html
         (yesterday's date).

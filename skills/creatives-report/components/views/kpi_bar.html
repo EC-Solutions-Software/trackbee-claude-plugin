@@ -1,0 +1,32 @@
+
+    <div class="kpi-bar">
+      <div class="kpi-tile">
+        <div class="kpi-label">Active ads</div>
+        <div class="kpi-value">{N_ADS}</div>
+        <div class="kpi-sub">spending in this window</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-label">Total ad spend</div>
+        <div class="kpi-value">{TOTAL_SPEND}</div>
+        <div class="kpi-sub">{N_DAYS}-day window</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-label">Blended ROAS</div>
+        <div class="kpi-value {ROAS_CLASS}">
+          {BLENDED_ROAS}×
+        </div>
+        <div class="kpi-sub">{TOTAL_PURCH} purchases · {TOTAL_REV} revenue</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-label">Fatigued creatives</div>
+        <div class="kpi-value {FATIGUE_CLASS}">{FATIGUED_N}</div>
+        <div class="kpi-sub">{REFRESH_N} refresh · {KILL_N} kill</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-label">Median frequency (Meta)</div>
+        <div class="kpi-value {FREQ_CLASS}">
+          {FREQ}{FREQ_SUFFIX}
+        </div>
+        <div class="kpi-sub">≥ 3.5 triggers REFRESH</div>
+      </div>
+    </div>
