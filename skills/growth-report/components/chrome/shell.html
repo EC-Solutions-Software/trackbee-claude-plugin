@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Growth report · {STORE_NAME}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>{INLINE_THEME_CSS}</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HEADER + ANSWER (merged dark navy panel — first thing the user sees) -->
+    <div class="hero hero-with-answer">
+      <div class="hero-row">
+        <div class="hero-brand">
+          <div class="hero-brand-wordmark">{BRAND_WORDMARK}</div>
+        </div>
+        <div class="hero-window-pill">{WINDOW_LABEL}</div>
+      </div>
+      <div class="eyebrow on-dark" style="margin-top:18px">Growth report</div>
+      <h1>{HERO_HEADLINE}</h1>
+      <div class="answer-body">
+        {ANSWER_BLOCK}
+      </div>
+    </div>
+
+    <!-- WHAT'S WORKING / WHAT'S BREAKING -->
+    <div class="split">
+      <div class="split-col working">
+        <h3>What's working</h3>
+        <ul>{WORKING_LIST}</ul>
+      </div>
+      <div class="split-col breaking">
+        <h3>What's breaking</h3>
+        <ul>{BREAKING_LIST}</ul>
+      </div>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="actions">
+      <div class="eyebrow" style="margin-bottom:10px">Next steps</div>
+      <ol>{ACTIONS_LIST}</ol>
+    </div>
+    {EXCLUSION_NOTE}
+
+    <!-- METRIC FRAMEWORK TABLE -->
+    <div class="table-wrap">
+      <div class="eyebrow" style="margin-bottom:10px">Metric framework</div>
+      <h2>The growth checklist</h2>
+      <p class="muted" style="margin-bottom:14px">Every metric the TrackBee Insights exposes for this store, scored against the current and prior 7-day windows. Use the filter to focus on the metrics that are showing good or bad signs.</p>
+      <div class="table-controls" id="metricFilter" role="tablist">
+        <button data-f="all" class="active">All</button>
+        <button data-f="positive">Positive signals</button>
+        <button data-f="negative">Negative signals</button>
+      </div>
+      <table class="metrics">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>What it indicates</th>
+            <th>Imp.</th>
+            <th>{CURRENT_HEADER}</th>
+            <th>{PRIOR_HEADER}</th>
+            <th>What this means for the analysis</th>
+          </tr>
+        </thead>
+        <tbody id="metricsBody">{METRICS_ROWS}</tbody>
+      </table>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="page-footer">
+      <span class="footer-wordmark">TrackBee growth report</span><br>
+      Store: {STORE_NAME} ({STORE_ID}) · Current window: {CURRENT_LABEL} · Prior window: {PRIOR_LABEL} · Generated {GENERATED_DATE}<br>
+      <span style="font-size:11px">
+        Data from the TrackBee Insights. <code>checkout_started</code> is tracked client-side only; counts may understate true checkout starts. Gross margin, contribution profit, and product-mix economics aren't shown because they require Shopify product cost sync to be enabled.
+      </span>
+    </footer>
+
+  </div>
+
+  <!-- Metric framework filter glue: all / positive / negative -->
+  <script>{INLINE_METRIC_FILTER_JS}</script>
+
+</body>
+</html>

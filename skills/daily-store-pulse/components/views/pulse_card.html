@@ -1,0 +1,36 @@
+<!-- Per-store pulse card -->
+<div class="pulse-card" data-store="{STORE_ID}">
+
+  <div class="pulse-head">
+    <div class="store-id-line">
+      <p class="store-name">{STORE_NAME}</p>
+    </div>
+    <div class="verdict-block">
+      <span class="verdict {VERDICT_CLASS}"><span class="v-dot"></span>{VERDICT_LABEL}</span>
+      <span class="verdict-why">{VERDICT_WHY}</span>
+    </div>
+  </div>
+
+  <div class="kpis">{KPI_TILES}</div>
+
+  <div>
+    <div class="section-eyebrow">Month-to-date pacing</div>
+    <div class="mtd">{MTD_BLOCK}</div>
+  </div>
+
+  <div>
+    <div class="section-eyebrow">Needs attention</div>
+    <div class="attention">{ATTENTION_ITEMS}</div>
+  </div>
+
+  <div>
+    <div class="section-eyebrow">Top movers since yesterday</div>
+    <div class="movers">{MOVERS}</div>
+  </div>
+
+  <div class="dock">
+    <div class="section-eyebrow">Go deeper</div>
+    <div class="dock-grid">{DOCK_LINKS}</div>
+  </div>
+
+</div>

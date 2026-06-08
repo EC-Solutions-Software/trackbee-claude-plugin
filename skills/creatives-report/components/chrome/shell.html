@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Creatives report · {STORE_NAME}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>{INLINE_THEME_CSS}</style>
+</head>
+<body>
+
+<header class="page-header">
+  {LOGO_HTML}
+  <span class="header-divider"></span>
+  <span class="report-title">Creatives report</span>
+  <span class="header-spacer"></span>
+  <span class="date-pill">{DATE_PILL}</span>
+  <span class="generated">Generated {GENERATED_DATE}</span>
+</header>
+
+<nav class="store-nav" id="storeNav">
+{EXCLUSION_NOTE}
+{NAV_TABS}
+</nav>
+
+<main class="main">
+{STORE_SECTIONS}
+</main>
+
+<footer class="page-footer">
+  TrackBee Creatives report · {DATE_LABEL} · Generated {GENERATED_DATE}<br>
+  <span style="font-size:12px">
+    Fatigue scoring uses absolute thresholds (frequency, ROAS, NNR share) over the last 7 days — no week-over-week comparison.
+    Click-window purchases are cumulative (<code>1d ⊂ 7d ⊂ 28d</code>) and never summed.
+    Spend converted to store currency per ad account using the FX rates supplied in <code>config.json</code>.
+  </span>
+</footer>
+
+<script>{INLINE_FORMAT_HELPERS_JS}</script>
+<script>{INLINE_TABLE_FILTERS_JS}</script>
+</body>
+</html>
