@@ -16,7 +16,7 @@ days** — there is no longer-window or comparison slice.
 | Spend              | `spend`                      | In `ad_account_currency`. Convert with `fx_to_store`. |
 | Reach              | `reach`                      | Unique people |
 | Impressions        | `impressions`                | |
-| Frequency          | `frequency`                  | Threshold: >= 3.5 → REFRESH |
+| Frequency          | `frequency`                  | Avg impressions ÷ reach per person (Meta only) |
 | CPM                | `cpm`                        | |
 | CTR                | `ctr`                        | Already in % |
 | CPC                | `cpc`                        | |
@@ -27,11 +27,11 @@ days** — there is no longer-window or comparison slice.
 | ROAS               | `purchase_roas`              | Platform-reported |
 | CPA                | `spend / purchases`          | Computed |
 | Cost / ATC         | `spend / add_to_carts`       | Computed |
-| Net new reach      | `net_new_reach`              | ⚠ **Not currently returned by `tool__get_meta_ad_insights`,** so the NNR-based REFRESH signal is dormant (renders "—"). |
-| NNR share          | `net_new_reach / reach`      | Computed. Threshold: 0 ≤ share < 0.10 with reach > 1000 → REFRESH. ⚠ **Dormant** while `net_new_reach` is absent (renders "—", never fires REFRESH). |
+| Net new reach      | `net_new_reach`              | ⚠ **Not currently returned by `tool__get_meta_ad_insights`,** so this renders "—". |
+| NNR share          | `net_new_reach / reach`      | Computed share of reach that is net-new people. ⚠ Renders "—" while `net_new_reach` is absent. |
 | New customers      | `new_customer_purchases`     | TrackBee custom event |
 | NC revenue         | `new_customer_revenue`       | |
-| Purchases 1d click | `purchases_1d_click`         | Used for "upper-funnel shift" tag |
+| Purchases 1d click | `purchases_1d_click`         | 1-day click attribution count |
 | Purchases 7d click | `purchases_7d_click`         | Cumulative with 1d |
 | Purchases 28d click| `purchases_28d_click`        | Cumulative with 1d, 7d |
 | Purchases 1d view  | `purchases_1d_view`          | View-through, separate from click |
@@ -64,7 +64,7 @@ days** — there is no longer-window or comparison slice.
 | First active       | `start_date`                         | Drives Age (d) column. ⚠ **Not returned** on Google ad rows (`start_date` is only a query parameter) — Age (d) always "—". |
 
 PMAX asset groups have no per-asset spend / impressions — listed for
-inventory only, excluded from fatigue scoring.
+inventory only; spend-derived columns render "—".
 
 ## Anomalies (`tool__detect_anomalies`)
 
@@ -113,16 +113,8 @@ def google_format(ad_or_group, campaign_type):
     return (campaign_type or "Other").title()
 ```
 
-## Status decision badges
+## Status column (platform-native)
 
-See `dashboard-spec.md §1` for the full decision tree. Quick
-reference:
-
-| Tag      | Color (CSS class)  |
-|----------|---------------------|
-| SCALE    | `act-scale`  — green / success |
-| HOLD     | `act-hold`   — muted grey |
-| REFRESH  | `act-refresh` — amber / warning |
-| KILL     | `act-kill`   — red / error |
-| retargeting only     | `tag-chip` — lavender / blue ink |
-| upper-funnel shift   | `tag-chip` — lavender / blue ink |
+The per-ad "Status" column shows the platform's own delivery state
+(`effective_status` — Active / Paused), not a TrackBee verdict. No
+TrackBee-authored status tag or action badge is rendered.

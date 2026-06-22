@@ -54,12 +54,11 @@ All monetary fields from `tool__get_dashboard_overview` arrive in **cents** of
 | Creative fatigue | `tool__get_meta_recommendations` | Meta's own fatigue + fragmentation flags. |
 | Frequency | `tool__get_meta_recommendations` | Delivery frequency signal. |
 
-## Next-step targeting (`tool__get_meta_campaign_insights`, `tool__get_google_campaign_insights`)
+## Campaign payloads (`tool__get_meta_campaign_insights`, `tool__get_google_campaign_insights`)
 
-Used only to name the specific campaigns the Next-steps actions call out —
-worst sub-1.0-ROAS spenders and top-ROAS scale candidates. Meta ROAS =
-`purchase_roas`; Google ROAS = `conversions_value / spend`. Campaigns with
-no ROAS data (None) are skipped, not scored as zero.
+Used only to resolve excluded `campaign_id`s back to campaign names for the
+exclusion note. No per-campaign scoring or ranking is done in the growth
+report.
 
 `spend` here is in the **ad-account currency**, not store currency. It is
 multiplied by `meta_fx_to_store` / `google_fx_to_store` (from config,

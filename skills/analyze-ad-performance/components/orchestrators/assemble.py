@@ -39,16 +39,13 @@ def _ins_list(items: list[str]) -> str:
     return "".join(f"<li>{i}</li>" for i in items)
 
 
-def _insights_grid(m_ins: list[str], m_recs: list[str],
-                   g_ins: list[str], g_recs: list[str]) -> str:
-    """Two-column grid: Meta insights / Google insights. Markup lives in views/."""
+def _insights_grid(m_ins: list[str], g_ins: list[str]) -> str:
+    """Two-column grid: Meta observations / Google observations. Markup lives in views/."""
     template = _read(VIEWS / "insights_section.html")
     return (
         template
         .replace("{META_INSIGHTS}",   _ins_list(m_ins))
-        .replace("{META_RECS}",       _ins_list(m_recs))
         .replace("{GOOGLE_INSIGHTS}", _ins_list(g_ins))
-        .replace("{GOOGLE_RECS}",     _ins_list(g_recs))
     )
 
 
@@ -134,9 +131,9 @@ def build(inputs_dir: Path, skill_dir: Path) -> str:
                     google_rows.ad_rows(g_ads[cid], sym, g_fx, n_days, sid, cid, is_pmax)
                 )
 
-        # Insights + questions.
-        m_ins, m_recs = meta_ins.build(meta_c, sym)
-        g_ins, g_recs = google_ins.build(goog_c, sym, g_fx)
+        # Observations + questions.
+        m_ins = meta_ins.build(meta_c, sym)
+        g_ins = google_ins.build(goog_c, sym, g_fx)
         qs = next_q.build(meta_c, goog_c, sym, m_fx, g_fx)
 
         rendered.append({
@@ -144,7 +141,7 @@ def build(inputs_dir: Path, skill_dir: Path) -> str:
             "name":      s["name"],
             "tiles":     tiles,
             "rows":      "\n".join(rows_buf),
-            "insights":  _insights_grid(m_ins, m_recs, g_ins, g_recs),
+            "insights":  _insights_grid(m_ins, g_ins),
             "questions": next_q.render_questions_html(qs),
         })
 

@@ -1,15 +1,15 @@
 """TrackBee Daily Store Pulse — orchestrator.
 
 Loads each transform / insight per store in sequence, renders one pulse card per
-store from the view template, computes the portfolio header from the per-store
-verdicts, and stamps the page shell.
+store from the view template, builds a factual portfolio header (store count +
+which stores flagged an anomaly today), and stamps the page shell.
 
 Data is baked in at build time — the artifact makes no MCP calls at runtime. A
 paired scheduled task re-runs the skill daily at 08:00 and overwrites the
 artifact in place using the same id.
 
-When a store's payload is missing or empty the card still renders: the verdict
-reads "Watch — no data for yesterday yet" and each section degrades to a plain
+When a store's payload is missing or empty the card still renders: the
+KPI tiles and each section degrade to a plain "no data for yesterday yet"
 notice instead of failing the whole build.
 """
 
@@ -202,17 +202,60 @@ def _render_store_chips(chips) -> str:
     return "".join(out)
 
 
+# Map the anomaly monitor's own severity level → a neutral dot colour class.
+# These mark where the detector flagged an anomaly; they are not a verdict or
+# a recommended action.
+_DOT_CLASS = {"high": "sev-high", "medium": "sev-medium", "none": "sev-none"}
+
+
 def _render_attention_stores(attention) -> str:
     if not attention:
         return ""
     chips = []
     for a in attention:
-        lvl = a.get("level", "watch")
+        dot = _DOT_CLASS.get(a.get("level"), "sev-medium")
         chips.append(
             '<span class="att-chip">'
-            f'<span class="dot {_esc(lvl)}"></span>{_esc(a["name"])}</span>'
+            f'<span class="dot {_esc(dot)}"></span>{_esc(a["name"])}</span>'
         )
     return '<div class="attention-stores">' + "".join(chips) + '</div>'
+
+
+def _build_portfolio(built):
+    """Factual portfolio summary — no verdict classification.
+
+    ``built`` is the list of per-store card dicts (each with store_name and
+    flag_level). The header counts how many stores have a flagged anomaly
+    today; the summary names them. Everything stated is a count, never a
+    judgement.
+    """
+    n = len(built)
+    if n == 0:
+        return {
+            "headline": "No stores connected yet",
+            "summary": "Connect a Shopify store in TrackBee and the daily pulse will fill in here.",
+            "attention": [],
+        }
+
+    flagged = [b for b in built if b["flag_level"] in ("high", "medium")]
+    plural = "store" if n == 1 else "stores"
+
+    if not flagged:
+        headline = (f"All {n} {plural} — nothing flagged today"
+                    if n > 1 else "Your store — nothing flagged today")
+        summary = "No anomalies flagged across the portfolio this morning."
+        attention = []
+    else:
+        k = len(flagged)
+        headline = f"{k} of {n} {plural} flagged something today"
+        names = ", ".join(html.escape(b["store_name"] or "Store", quote=True)
+                          for b in flagged)
+        summary = (f"<strong>{k} of {n} {plural} flagged an anomaly or "
+                   f"recommendation today:</strong> {names}. "
+                   f"The rest had nothing flagged.")
+        attention = [{"name": b["store_name"], "level": b["flag_level"]}
+                     for b in flagged]
+    return {"headline": headline, "summary": summary, "attention": attention}
 
 
 # ---- per-store card ---------------------------------------------------------
@@ -243,11 +286,21 @@ def _build_card(card_tpl, store_cfg, inputs_dir, windows, mtd_meta, baseline_day
 
     summary = mods["loader"].normalize(store_cfg, raws, windows)
     attention = mods["attention"].build(summary)
-    verdict = mods["verdict"].build_store(summary, attention, baseline_days)
     kpis = mods["kpis"].build(summary, baseline_days)
     mtd = mods["mtd"].build(summary, mtd_meta)
     movers = mods["movers"].build(summary, store_cfg.get("fx_to_store") or {})
-    dock = mods["dock"].build(summary, verdict, attention)
+    dock = mods["dock"].build(summary, attention)
+
+    # Factual flag level for the store chip dot — derived from the anomaly
+    # monitor's own severity, not a TrackBee verdict. "high" if any
+    # high-severity anomaly fired, "medium" if any medium-severity item,
+    # else "none".
+    if attention.get("high", 0):
+        flag_level = "high"
+    elif attention.get("medium", 0):
+        flag_level = "medium"
+    else:
+        flag_level = "none"
 
     series = summary.get("daily_revenue") or []
     n_days = len(series)
@@ -259,9 +312,6 @@ def _build_card(card_tpl, store_cfg, inputs_dir, windows, mtd_meta, baseline_day
     subs = {
         "{STORE_ID}":       _esc(store_id),
         "{STORE_NAME}":     _esc(summary["store_name"]),
-        "{VERDICT_CLASS}":  _esc(verdict["class"]),
-        "{VERDICT_LABEL}":  _esc(verdict["label"]),
-        "{VERDICT_WHY}":    _esc(verdict["why"]),
         "{KPI_TILES}":      _render_kpis(kpis),
         "{MTD_BLOCK}":      _render_mtd(mtd, spark, trend_label),
         "{ATTENTION_ITEMS}": _render_attention(attention),
@@ -273,7 +323,8 @@ def _build_card(card_tpl, store_cfg, inputs_dir, windows, mtd_meta, baseline_day
     return {
         "html": card_html,
         "store_name": summary["store_name"],
-        "verdict": verdict,
+        "flag_level": flag_level,
+        "attention": attention,
     }
 
 
@@ -294,7 +345,6 @@ def build(inputs_dir: Path, config: dict) -> str:
         "mtd":       _load_module(TRANSFORMS / "mtd.py"),
         "movers":    _load_module(TRANSFORMS / "movers.py"),
         "attention": _load_module(INSIGHTS / "attention.py"),
-        "verdict":   _load_module(INSIGHTS / "verdict.py"),
         "dock":      _load_module(INSIGHTS / "dock.py"),
         "sparkline": _load_module(CHARTS / "sparkline.py"),
     }
@@ -312,19 +362,22 @@ def build(inputs_dir: Path, config: dict) -> str:
 
     cards = []
     chips = []
-    verdicts = []
+    built = []
     for store_cfg in stores:
         card = _build_card(card_tpl, store_cfg, inputs_dir, windows, mtd_meta,
                             baseline_days, mods)
         cards.append(card["html"])
-        verdicts.append({"store_name": card["store_name"], "verdict": card["verdict"]})
+        built.append(card)
         chips.append({
             "id": str(store_cfg.get("store_id")),
             "name": card["store_name"],
-            "dot": card["verdict"]["class"],   # ok | watch | act
+            # Map the factual anomaly-severity level onto the existing dot
+            # colour classes (pink / yellow / green). These are colour tokens
+            # only — no verdict text is shown.
+            "dot": _DOT_CLASS[card["flag_level"]],
         })
 
-    portfolio = mods["verdict"].build_portfolio(verdicts)
+    portfolio = _build_portfolio(built)
 
     # Window / date labels.
     yday_w = windows.get("yesterday") or {}
@@ -352,7 +405,7 @@ def build(inputs_dir: Path, config: dict) -> str:
         "{DATE_PILL}":              _esc(date_pill),
         "{ARTIFACT_ID}":            _esc(artifact_id),
         "{PORTFOLIO_HEADLINE}":     _esc(portfolio["headline"]),
-        "{PORTFOLIO_VERDICT}":      portfolio["verdict"],   # intentional HTML, names pre-escaped
+        "{PORTFOLIO_SUMMARY}":      portfolio["summary"],   # intentional HTML, names pre-escaped
         "{ATTENTION_STORES}":       _render_attention_stores(portfolio["attention"]),
         "{STORE_CHIPS}":            _render_store_chips(chips),
         "{STORE_CARDS}":            store_cards_html,

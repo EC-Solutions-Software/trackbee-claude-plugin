@@ -57,17 +57,18 @@ All values in **cents** of `store_currency` — divide by 100 for display.
 | Total Ad Spend | `overview.ad_account_spend`                          |
 | Platform ROAS  | `overview.platform_statistics[].return_on_ad_spend`  |
 
-## Scaling decision framework
+## What gets surfaced as a key observation
 
-Thresholds live in `components/insights/thresholds.py`. Spend thresholds
-are expressed in **store currency units** — every monetary cell rendered
-in the dashboard uses the store's symbol from config, not a hardcoded one.
+The dashboard presents measured figures only — it does not score
+campaigns or recommend actions. Thresholds in
+`components/insights/thresholds.py` decide only *which* figures are
+material enough to call out as a key observation or a follow-up
+question; they never attach a verdict. Spend thresholds are expressed
+in **store currency units** — every monetary cell uses the store's
+symbol from config, not a hardcoded one.
 
-| Signal                                          | Action                  |
-|-------------------------------------------------|-------------------------|
-| ROAS ≥ 1.8 AND Frequency < 2.5                  | Scale +20–30%           |
-| ROAS 1.5–1.8 AND Frequency < 3.0                | Hold — monitor weekly   |
-| Frequency ≥ 3.5 AND ROAS ≥ 1.2                  | Refresh creative        |
-| ROAS < 1.2 AND Spend > 200 (store currency)     | Review / pause          |
-| Google ROAS ≥ 4.0 AND Spend > 50 (store ccy)    | Scale aggressively      |
-| Google branded cannibalization = "high"         | Add negative keywords   |
+| Threshold                              | What it surfaces (figures only)                     |
+|----------------------------------------|-----------------------------------------------------|
+| Frequency ≥ 3.0 (Meta)                 | Lists the campaign's frequency, spend and ROAS      |
+| Lowest campaign ROAS < 1.0             | Lists that campaign's ROAS and spend                |
+| Google branded cannibalization = "high"| States the campaign's branded-spend share (Google's own flag) |

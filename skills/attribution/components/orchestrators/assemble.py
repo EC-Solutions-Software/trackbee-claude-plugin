@@ -54,15 +54,16 @@ def _step_count(funnel_obj, step):
     return 0
 
 
-_INSIGHT_LI = (
+_INSIGHT_LI_OBS = (
     '<li class="insight-item"><span class="insight-bullet"></span><div>'
-    '<div class="insight-obs">{obs}</div>'
-    '<div class="insight-act">{act}</div></div></li>'
+    '<div class="insight-obs">{obs}</div></div></li>'
 )
 
 
 def _insight_lis(insights) -> str:
-    return "".join(_INSIGHT_LI.format(obs=i["obs"], act=i["act"]) for i in insights)
+    # Insights are factual observations only — no TrackBee-authored action
+    # line is rendered.
+    return "".join(_INSIGHT_LI_OBS.format(obs=i["obs"]) for i in insights)
 
 
 def build(inputs_dir, config: dict, assets_dir, out_path) -> dict:

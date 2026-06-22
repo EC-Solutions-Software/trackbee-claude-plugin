@@ -5,16 +5,17 @@ on every run** — only when modifying a component or adding a new metric.
 
 ## Page structure (top to bottom)
 
-The shipped layout is `components/chrome/shell.html`. Five blocks:
+The shipped layout is `components/chrome/shell.html`. Four blocks:
 
 1. **Header + answer** (one merged dark navy panel — the first thing the
    user sees). Brand wordmark, current window pill, eyebrow tag, big H1
    headline, then the answer body. The H1 is dynamically chosen based on
    revenue Δ — see `insights/answer.py:build` for the rules. The answer
    body (`{ANSWER_BLOCK}`) carries the short answer (concrete numbers,
-   what moved, who's responsible), the "why this is happening" structural
-   read of the growth engines, and the structural takeaway — all built in
-   `insights/answer.py`. The headline KPIs computed in
+   what moved) and the "why this is happening" structural read of the
+   growth engines — all built from this window's measured figures in
+   `insights/answer.py`. It states figures, never recommended actions.
+   The headline KPIs computed in
    `transforms/headline_kpis.py` feed this block, the drivers, and the
    metric table; they are not rendered as a separate tile grid.
 2. **What's working / What's breaking** (side-by-side cards). Working =
@@ -22,17 +23,16 @@ The shipped layout is `components/chrome/shell.html`. Five blocks:
    items, each a `<strong>title</strong>` + one-line `<div class="why">`.
    Rules for inclusion live in `transforms/drivers.py` — see §Driver
    signal gates below for the thresholds.
-3. **Next steps** (white card). Numbered list, navy circle counters.
-   Generated in `insights/answer.py:build` from which "breaking" items
-   appeared, plus one always-on action (enable Shopify product-cost
-   sync). A Pinterest/TikTok reallocation action is added only when an
-   under-weighted channel (<5% of spend) is running ROAS > 2.5.
-4. **Metric framework table** (white card). Every row of the TrackBee
+3. **Metric framework table** (white card). Every row of the TrackBee
    Growth checklist. Filter pills above the table: All / Positive signals /
-   Negative signals (filter on each row's `data-signal`). Columns: Metric,
-   What it indicates, Imp.(ortance), Value · current, Value · prior, What
-   this means for the analysis.
-5. **Footer** (light card). Store id + window dates + caveats about
+   Negative signals (filter on each row's `data-signal`, which records only
+   the direction of the week-over-week move). Columns: Metric, What it
+   indicates (a neutral definition — no "good/bad looks like" guidance),
+   Imp.(ortance), Value · current, Value · prior, What this means for the
+   analysis (states the figures + the WoW delta). The iROAS and incremental
+   revenue rows describe themselves as modelled estimates; true lift needs a
+   holdout test.
+4. **Footer** (light card). Store id + window dates + caveats about
    `checkout_started` and COGS.
 
 ## Driver signal gates

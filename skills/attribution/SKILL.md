@@ -5,17 +5,16 @@ description: >-
   page combining an Executive Summary, Blended Overview with Acquisition MER
   over time, Platform Overview, Channel Attribution, Customer Journeys
   (touch-points heatmap + sankey, auto-hidden when the store has no shopper
-  profiles), a Store Funnel Analysis with stage-specific fix-it insights,
-  and a clickable "Where to go next" dock of follow-up prompts. Use this
-  skill whenever someone asks for an attribution overview, a marketing
+  profiles), a Store Funnel Analysis with per-stage conversion rates and
+  lost-shopper counts, and a "Where to go next" dock of follow-up prompts. Use
+  this skill whenever someone asks for an attribution overview, a marketing
   scorecard, a channel-contribution view, where platforms overlap, a
   journey/path visualisation, a multi-touch overview, a funnel drop-off
-  review, or any persistent multi-report attribution view that also covers
-  the store funnel — even if they don't use the word "dashboard". Trigger
-  also for "show me how each channel contributes", "where do my platforms
-  overlap", "where is my funnel leaking", "what should I look at next",
-  "rebuild this in our brand", or any request that includes blended /
-  per-platform KPIs, a channel breakdown, and a funnel review together.
+  review, or any persistent attribution view that also covers the store
+  funnel. Trigger also for "show me how each channel contributes", "where do
+  my platforms overlap", "where is my funnel leaking", "what should I look at
+  next", "rebuild this in our brand", or any request combining blended /
+  per-platform KPIs, a channel breakdown, and a funnel review.
 ---
 
 # Attribution Overview
@@ -34,8 +33,8 @@ This report covers six sections: Executive Summary, Blended Overview (with
 the Acquisition MER / NC-ROAS line over time), Platform Overview, Channel
 Attribution, Customer Journeys (touch-points heatmap + sankey, auto-hidden
 when the store has no shopper profiles), Store Funnel Analysis (page view →
-order, with stage-specific fix-it insights), and a "Where to go next" dock of
-clickable follow-up prompts.
+order, with per-stage conversion rates and lost-shopper counts), and a "Where
+to go next" dock of clickable follow-up prompts.
 
 ## Workflow (the happy path — keep tokens low)
 
@@ -292,11 +291,11 @@ components/
     journeys.py                       path union + sankey views + journey-shape stats
     heatmap.py                        co-occurrence heatmap + low-sample caveat
   insights/
-    channel_attribution.py           channel ROAS / CPA / underinvested / underperformer
-    executive_summary.py             headline takeaways
-    funnel.py                         stage-specific funnel fix-it insights
-    journey.py                       customer-journey insights
-    cooccurrence.py                  touch-point overlap insights
+    channel_attribution.py           channel ROAS / CPA / spend share (figures only)
+    executive_summary.py             headline figures (revenue, ROAS, top channel share)
+    funnel.py                        per-stage conversion rate + lost-shopper count
+    journey.py                       customer-journey figures
+    cooccurrence.py                  touch-point overlap percentages
     questions.py                     "Where to go next" suggested prompts
   charts/
     nc_roas.py                        inline SVG NC-ROAS line
@@ -304,7 +303,7 @@ components/
   orchestrators/
     assemble.py                      loads components, computes, stamps shell.html
 references/                           design spec, metric map, hand-off template
-assets/                              TrackBee icon + wordmark (base64 + source PNG)
+assets/                              TrackBee icon + wordmark, light + dark variants (base64 + source PNG)
 ```
 
 ## Guidelines

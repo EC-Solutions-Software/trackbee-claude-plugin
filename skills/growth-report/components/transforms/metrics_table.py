@@ -6,15 +6,16 @@ render as a short prose placeholder in the interpretation column rather than a
 measured value — no rows are dropped.
 
 Each row carries:
-  - the static framework fields (name, indicates, bad/normal/good,
+  - the static framework fields (name, what the metric indicates,
     importance) — copied verbatim from the TrackBee growth-report
     checklist;
   - the current and prior window values computed from the staged MCP
     payloads;
-  - a one-line interpretation written against THIS run's numbers;
-  - a signal — "positive" | "negative" | "neutral" — computed from the
-    direction of change against the framework's bad/normal/good rules.
-    Drives the table's Positive / Negative filter buttons.
+  - a one-line interpretation stating THIS run's measured figures and
+    their week-over-week delta;
+  - a signal — "up" | "down" | "flat" — the raw direction of the
+    week-over-week change, with no good/bad judgement attached. Drives
+    the table's "Moved up" / "Moved down" filter buttons.
 """
 
 from __future__ import annotations
@@ -77,170 +78,111 @@ def _int_str(value):
 
 
 # ---- signal classification --------------------------------------------------
-# Three signal kinds per row:
-#   positive — the metric is moving in the direction the framework calls
-#              'Good' (or stable inside the 'Good' band).
-#   negative — the metric is moving in the framework's 'Bad' direction.
-#   neutral  — flat, ambiguous, or descriptive metric.
-# Thresholds: ±5% WoW by default; AOV overrides to ±3%, and CPC and the
-# worst-platform revenue move use ±10%.
+# The signal is purely the DIRECTION of the week-over-week change — no
+# good/bad judgement. Three kinds per row:
+#   up   — the metric rose by more than the threshold.
+#   down — the metric fell by more than the threshold.
+#   flat — moved inside the threshold band, or no comparable value.
+# It only drives the "Moved up" / "Moved down" filter; it never colours a
+# value as good or bad. Thresholds: ±5% WoW by default; AOV overrides to
+# ±3%, and CPC and the worst-platform revenue move use ±10%.
 
-def _signal_delta(d, *, threshold=5.0, inverted=False):
+def _signal_delta(d, *, threshold=5.0):
     if d is None:
-        return "neutral"
-    if inverted:
-        d = -d
+        return "flat"
     if d > threshold:
-        return "positive"
+        return "up"
     if d < -threshold:
-        return "negative"
-    return "neutral"
+        return "down"
+    return "flat"
 
 
 # ---- static metric definitions ----------------------------------------------
 # Only metrics the MCP can actually measure. Each tuple:
-#   (id, name, indicates, bad, normal, good, importance)
+#   (id, name, indicates, importance)
+# `indicates` is a neutral definition of what the metric measures — it does
+# not describe what a "good" or "bad" value looks like.
 METRICS_STATIC = [
-    ("revenue", "Revenue", "Top-line sales growth",
-     "Declining or flat despite spend increases", "Growing with spend",
-     "Growing faster than spend", "High"),
+    ("revenue", "Revenue", "Top-line sales", "High"),
 
-    ("new_revenue", "New customer revenue", "Whether growth is acquisition-led",
-     "Mostly flat or declining", "Growing with spend",
-     "Growing efficiently and profitably", "High"),
+    ("new_revenue", "New customer revenue", "Revenue from first-time buyers", "High"),
 
     ("ret_revenue", "Returning customer revenue",
-     "Whether existing customers are driving growth",
-     "Declining repeat revenue", "Stable repeat revenue",
-     "Growing without heavy discounting", "Medium"),
+     "Revenue from repeat customers", "Medium"),
 
     ("new_orders", "New customers acquired",
-     "Whether the brand is expanding its customer base",
-     "Declining new customer count", "Stable acquisition",
-     "Growing new customers efficiently", "High"),
+     "Count of first-time-buyer orders", "High"),
 
-    ("cac", "CAC · new customer CPA", "Cost to acquire a new customer",
-     "Rising faster than LTV or margin", "Stable near target",
-     "Declining or below target", "High"),
+    ("cac", "CAC · new customer CPA", "Cost to acquire a new customer", "High"),
 
     ("blended_cac", "Blended CAC",
-     "Overall acquisition efficiency across all channels",
-     "Rising while new customers are flat", "Stable",
-     "Improving while acquisition grows", "High"),
+     "Total paid spend per new customer, across all channels", "High"),
 
-    ("mer", "MER · blended ROAS", "Total revenue per total marketing dollar",
-     "Declining as spend grows", "Stable",
-     "Improving or holding while scaling", "High"),
+    ("mer", "MER · blended ROAS", "Total revenue per unit of total marketing spend", "High"),
 
-    ("platform_roas", "Platform ROAS", "What ad platforms claim they drove",
-     "High but not reflected in business results", "Directionally aligned",
-     "Matches blended and incrementality signals", "Medium"),
+    ("platform_roas", "Platform ROAS", "ROAS each ad platform reports for itself", "Medium"),
 
     ("iroas", "Incremental ROAS · iROAS",
-     "Revenue actually caused by marketing",
-     "Below break-even", "Near break-even or target",
-     "Above target with room to scale", "High"),
+     "Modelled estimate of return attributable to marketing; "
+     "true lift requires a holdout test", "High"),
 
     ("incremental_revenue", "Incremental revenue",
-     "Revenue that would not have happened otherwise",
-     "Little or no lift", "Some measurable lift",
-     "Strong lift vs. holdout / control", "High"),
+     "Modelled estimate of revenue attributable to marketing; "
+     "true lift requires a holdout test", "High"),
 
-    ("cvr", "Conversion rate", "Traffic-to-purchase efficiency",
-     "Declining or below baseline", "Stable",
-     "Improving with quality traffic", "Medium"),
+    ("cvr", "Conversion rate", "Traffic-to-purchase rate", "Medium"),
 
-    ("aov", "AOV", "Average order value",
-     "Declining or discount-driven", "Stable",
-     "Increasing through product mix / bundles", "Medium"),
+    ("aov", "AOV", "Average order value", "Medium"),
 
-    ("traffic", "Traffic · sessions", "Visitor volume",
-     "More traffic but no revenue lift", "Traffic and revenue move together",
-     "Quality traffic grows profitably", "Medium"),
+    ("traffic", "Traffic · sessions", "Visitor volume", "Medium"),
 
     ("traffic_quality", "Traffic quality",
-     "Whether visitors are likely to buy profitably",
-     "Low CVR, low AOV, high bounce", "Mixed quality",
-     "High CVR, high AOV, strong new customer mix", "High"),
+     "Composite read of CVR, AOV and new-customer mix", "High"),
 
-    ("spend_by_channel", "Spend by channel", "Where budget is deployed",
-     "Spend increasing without business impact", "Spend aligned to plan",
-     "Spend aligned to profitable growth drivers", "High"),
+    ("spend_by_channel", "Spend by channel", "Where paid budget is deployed", "High"),
 
     ("revenue_by_channel", "Revenue by channel",
-     "Which channels appear to drive sales",
-     "Revenue concentrated in low-incrementality channels", "Balanced",
-     "Revenue from incremental, scalable channels", "Medium"),
+     "Attributed revenue per channel", "Medium"),
 
     ("new_ret_mix", "New vs. returning customer mix",
-     "Whether growth is acquisition or retention led",
-     "New customer share falling unintentionally", "Stable mix",
-     "Mix matches growth strategy", "High"),
+     "Split of revenue between new and returning customers", "High"),
 
-    ("ltv", "LTV", "Long-term value of acquired customers",
-     "Declining by cohort / channel", "Stable",
-     "Increasing, especially for new customers", "High"),
+    ("ltv", "LTV", "Modelled long-term value of acquired customers", "High"),
 
-    ("ltv_cac", "LTV : CAC", "Long-term acquisition profitability",
-     "Below target, often <1–2x", "Near target",
-     "Strong, often 3x+ depending category", "High"),
+    ("ltv_cac", "LTV : CAC", "Modelled LTV divided by CAC", "High"),
 
-    ("marginal_roas", "Marginal ROAS", "Return on the next dollar of spend",
-     "Below break-even", "Near target",
-     "Above target with scale room", "High"),
+    ("marginal_roas", "Marginal ROAS", "Return on the next unit of spend", "High"),
 
-    ("marginal_cac", "Marginal CAC", "Cost of acquiring the next customer",
-     "Rising sharply", "Stable",
-     "Stable or improving while scaling", "High"),
+    ("marginal_cac", "Marginal CAC", "Cost of acquiring the next customer", "High"),
 
     ("saturation", "Saturation · diminishing returns",
-     "Whether more spend is becoming inefficient",
-     "Clear efficiency decay", "Some signs of fatigue",
-     "More spend still produces profitable lift", "High"),
+     "Whether added spend is still producing efficient return", "High"),
 
     ("incrementality_score", "Channel incrementality score",
-     "Likelihood a channel creates new demand",
-     "Mostly demand capture", "Mixed",
-     "Strong evidence of demand creation", "High"),
+     "Likelihood a channel creates new demand vs. captures existing demand", "High"),
 
     ("attribution_gap", "Attribution vs. incrementality gap",
-     "Whether a channel is over- or under-credited",
-     "Large unexplained gap", "Some gap",
-     "Signals mostly align or gap is understood", "High"),
+     "Difference between platform-reported and blended ROAS", "High"),
 
     ("creative_fatigue", "Creative fatigue",
-     "Whether ad performance is declining from overexposure",
-     "CTR / CVR down, frequency up, CPA up", "Mild fatigue",
-     "Fresh creative sustains performance", "Medium"),
+     "Whether ad performance is changing with overexposure", "Medium"),
 
-    ("frequency", "Frequency", "How often users see ads",
-     "Too high with declining performance", "Within expected range",
-     "Efficient reach without fatigue", "Medium"),
+    ("frequency", "Frequency", "How often users see ads", "Medium"),
 
     ("assisted_conv", "Assisted conversions",
-     "Whether a channel influences sales without closing them",
-     "No assist value", "Some assist value",
-     "Strong assist value plus business impact", "Medium"),
+     "Whether a channel influences sales without closing them", "Medium"),
 
     ("first_touch", "First-touch contribution",
-     "Which channels introduce new customers",
-     "Weak new customer discovery", "Some discovery value",
-     "Strong source of new demand", "Medium"),
+     "Which channels open customer journeys", "Medium"),
 
     ("last_touch", "Last-touch contribution",
-     "Which channels close purchases",
-     "Over-concentrated in demand capture", "Balanced",
-     "Strong closing signal with incrementality support", "Medium"),
+     "Which channels close purchases", "Medium"),
 
     ("product_mix", "Product mix",
-     "Whether sales come from high- or low-margin products",
-     "Shift toward low-margin products", "Stable mix",
-     "Shift toward high-margin / high-LTV products", "Medium"),
+     "Whether sales come from high- or low-margin products", "Medium"),
 
     ("confidence", "Confidence score",
-     "How much to trust the answer",
-     "Low data quality or conflicting signals", "Directionally useful",
-     "MTA, MMM, incrementality, and KPIs agree", "High"),
+     "How much corroborating signal supports the figures", "High"),
 ]
 
 
@@ -336,7 +278,7 @@ def _compute_values(headline, raws, ccy):
 
     # ---- CAC (inverted — down is good) ----
     d = _delta(cur.get("cac"), prv.get("cac"))
-    sig = _signal_delta(d, threshold=5.0, inverted=True)
+    sig = _signal_delta(d, threshold=5.0)
     v["cac"] = (_ccy(cur.get("cac"), ccy, digits=2), _ccy(prv.get("cac"), ccy, digits=2),
                 f"Customer acquisition cost {_signed_pct(d)} WoW.", sig)
 
@@ -346,7 +288,7 @@ def _compute_values(headline, raws, ccy):
     cur_bcac = _ratio(cur.get("spend"), cur.get("new_orders"))
     prv_bcac = _ratio(prv.get("spend"), prv.get("new_orders"))
     d = _delta(cur_bcac, prv_bcac)
-    sig = _signal_delta(d, threshold=5.0, inverted=True)
+    sig = _signal_delta(d, threshold=5.0)
     v["blended_cac"] = (_ccy(cur_bcac, ccy, digits=2), _ccy(prv_bcac, ccy, digits=2),
                         f"Total paid-media spend per new customer {_signed_pct(d)} WoW, "
                         "blended across all ad platforms.", sig)
@@ -383,11 +325,11 @@ def _compute_values(headline, raws, ccy):
     # Aggregate Meta incrementality if present in the campaign payload — otherwise flag as unavailable
     v["iroas"] = ("Available per Meta campaign", "Available per Meta campaign",
                   "Meta exposes per-campaign revenue_incrementality. Aggregating across campaigns requires a campaign-level pull; not surfaced at the store level in this report.",
-                  "neutral")
+                  "flat")
     v["incremental_revenue"] = ("Available per Meta campaign", "Available per Meta campaign",
                                 "Revenue lift vs. holdout is exposed per Meta campaign only; "
                                 "no store-level aggregate is available in this report.",
-                                "neutral")
+                                "flat")
 
     # ---- Conversion rate ----
     cur_cvr_pct = (cur_pv_to_order or 0) * 100 if cur_pv_to_order is not None else None
@@ -400,7 +342,7 @@ def _compute_values(headline, raws, ccy):
     # traffic is no quality loss; either way, mark neutral and say why.
     if (d is not None and traffic_d is not None
             and ((d > 0 and traffic_d < -10) or (d < 0 and traffic_d > 10))):
-        sig = "neutral"
+        sig = "flat"
         interp = (f"PV-to-order rate {_signed_pct(d)} WoW. Page views {_signed_pct(traffic_d)}, so the "
                   "rate move is largely arithmetic — read alongside per-platform funnel rates for true quality.")
     else:
@@ -434,13 +376,13 @@ def _compute_values(headline, raws, ccy):
     # window) — that's "unknown", not "flat", so it can't confirm either
     # signal. Mirror the explicit None-guard the CVR row uses above.
     if d is None or rev_d is None:
-        sig = "neutral"
+        sig = "flat"
     elif d < -10 and rev_d < -5:
-        sig = "negative"
+        sig = "down"
     elif d > 10 and rev_d > 5:
-        sig = "positive"
+        sig = "up"
     else:
-        sig = "neutral"
+        sig = "flat"
     v["traffic"] = (_int_str(cur_pv) + " PV", _int_str(prv_pv) + " PV",
                     f"Page-view volume {_signed_pct(d)} WoW (proxy for sessions).", sig)
 
@@ -448,7 +390,7 @@ def _compute_values(headline, raws, ccy):
     v["traffic_quality"] = (f"PV→Order {_pct(cur_cvr_pct, 2)}",
                              f"PV→Order {_pct(prv_cvr_pct, 2)}",
                              "Quality is a composite read — combine PV-to-order rate with per-platform funnel breakdown to separate true quality from mechanical CVR shifts.",
-                             "neutral")
+                             "flat")
 
     # ---- Spend by channel ----
     def _spend_str(plats):
@@ -460,7 +402,7 @@ def _compute_values(headline, raws, ccy):
         return " · ".join(parts) or "—"
     v["spend_by_channel"] = (_spend_str(cur_plats), _spend_str(prv_plats),
                               "Paid-media spend by platform. Compare against revenue-by-channel to identify allocation gaps.",
-                              "neutral")
+                              "flat")
 
     # ---- Revenue by channel ----
     def _rev_str(plats):
@@ -480,7 +422,7 @@ def _compute_values(headline, raws, ccy):
             d_rev = _delta(c_rev, p_rev)
             if d_rev is not None and (rev_worst is None or d_rev < rev_worst):
                 rev_worst = d_rev
-    sig_rev = _signal_delta(rev_worst, threshold=10.0) if rev_worst is not None else "neutral"
+    sig_rev = _signal_delta(rev_worst, threshold=10.0) if rev_worst is not None else "flat"
     v["revenue_by_channel"] = (_rev_str(cur_plats), _rev_str(prv_plats),
                                 "Per-platform attributed revenue. The largest WoW decline identifies where to focus campaign-level diagnostics first.",
                                 sig_rev)
@@ -506,7 +448,7 @@ def _compute_values(headline, raws, ccy):
         f"{cur_share*100:.1f}% new / {(1-cur_share)*100:.1f}% returning" if cur_share is not None else "—",
         f"{prv_share*100:.1f}% new / {(1-prv_share)*100:.1f}% returning" if prv_share is not None else "—",
         interp,
-        "neutral",
+        "flat",
     )
 
     # ---- LTV ----
@@ -516,19 +458,20 @@ def _compute_values(headline, raws, ccy):
                 f"Modelled customer lifetime value {_signed_pct(d)} WoW.", sig)
 
     # ---- LTV:CAC ----
+    # State the ratio with its inputs and the WoW delta; no benchmark verdict.
     cur_l = cur.get("ltv_cac")
     prv_l = prv.get("ltv_cac")
+    d = _delta(cur_l, prv_l)
+    sig = _signal_delta(d, threshold=5.0)
     if cur_l is None:
-        sig = "neutral"; interp = "Insufficient data."
-    elif cur_l < 2.0:
-        sig = "negative"
-        interp = f"At {cur_l:.2f}×. Sub-2× indicates unit economics close to break-even before COGS and overhead — sensitive to auction-cost and AOV variation."
-    elif cur_l >= 3.0:
-        sig = "positive"
-        interp = f"At {cur_l:.2f}×. At or above the 3× category benchmark, supporting continued reinvestment."
+        sig = "flat"; interp = "Insufficient data."
     else:
-        sig = "neutral"
-        interp = f"At {cur_l:.2f}×. Between break-even and the 3× benchmark — monitor trend."
+        ltv_v = cur.get("ltv")
+        cac_v = cur.get("cac")
+        inputs_clause = ""
+        if ltv_v is not None and cac_v:
+            inputs_clause = f" ({_ccy(ltv_v, ccy, digits=2)} modelled LTV ÷ {_ccy(cac_v, ccy, digits=2)} CAC)"
+        interp = f"{cur_l:.2f}× this window{inputs_clause}, {_signed_pct(d)} WoW."
     v["ltv_cac"] = (f"{cur_l:.2f}x" if cur_l is not None else "—",
                     f"{prv_l:.2f}x" if prv_l is not None else "—",
                     interp, sig)
@@ -536,42 +479,32 @@ def _compute_values(headline, raws, ccy):
     # ---- Marginal ROAS ----
     # Return on the *next* unit of spend — only defined when spend increased
     # this window. On a flat or spend-down week there is no incremental spend
-    # to score, so computing Δrevenue/Δspend (a negative denominator) would
-    # invert the signal and tell the user to scale a week they cut.
+    # to score, so Δrevenue/Δspend (a negative denominator) isn't meaningful.
+    # We report the measured figure only — no good/bad signal.
     marg = None
     spend_delta = (cur.get("spend") or 0) - (prv.get("spend") or 0)
     if cur.get("spend") and prv.get("spend") and spend_delta > 0:
         marg = ((cur.get("revenue") or 0) - (prv.get("revenue") or 0)) / spend_delta
     if marg is None or (marg != marg):
-        sig = "neutral"
         interp_m = "Spend did not increase this window, so marginal ROAS on added spend is not defined."
         cur_marg_str = "—"
-    elif marg < 1.0:
-        sig = "negative"
-        interp_m = f"Marginal ROAS {marg:.2f}. The incremental spend in this window returned less than it cost (below 1.0× on the added spend)."
-        cur_marg_str = f"{marg:.2f}"
-    elif marg > 2.5:
-        sig = "positive"
-        interp_m = f"Marginal ROAS {marg:.2f}. Headroom exists to test additional spend at the current efficiency."
-        cur_marg_str = f"{marg:.2f}"
     else:
-        sig = "neutral"
-        interp_m = f"Marginal ROAS {marg:.2f}. Within the typical efficiency range — neither strong scale signal nor immediate cut signal."
+        interp_m = f"Marginal ROAS {marg:.2f} — the added spend this window returned {marg:.2f}× (Δrevenue ÷ Δspend)."
         cur_marg_str = f"{marg:.2f}"
-    v["marginal_roas"] = (cur_marg_str, "Baseline", interp_m, sig)
+    v["marginal_roas"] = (cur_marg_str, "Baseline", interp_m, "flat")
 
     # ---- Marginal CAC ----
     new_d = _delta(cur.get("new_orders"), prv.get("new_orders"))
     spend_d = _delta(cur.get("spend"), prv.get("spend"))
     v["marginal_cac"] = ("Read together", "Read together",
                           f"New-order count {_signed_pct(new_d)} on spend {_signed_pct(spend_d)}. Read together with the CPC inflation row to separate auction pressure from creative effect.",
-                          "neutral")
+                          "flat")
 
     # ---- Saturation / diminishing returns (CPC-led) ----
     fb = cur_plats.get("facebook") or {}
     fb_p = prv_plats.get("facebook") or {}
     cpc_d = _delta(fb.get("cpc"), fb_p.get("cpc")) if fb.get("cpc") and fb_p.get("cpc") else None
-    sig = _signal_delta(cpc_d, threshold=10.0, inverted=True)
+    sig = _signal_delta(cpc_d, threshold=10.0)
     # Keep the interpretation threshold aligned with the signal threshold
     # (10%) so a row flagged negative never reads as "within typical noise".
     if cpc_d is not None and cpc_d > 10:
@@ -587,7 +520,7 @@ def _compute_values(headline, raws, ccy):
     # ---- Channel incrementality score ----
     v["incrementality_score"] = ("Per-channel proxy", "Per-channel proxy",
                                   "True incrementality requires a holdout test — not exposed in this report. As a structural proxy, branded-search channels typically capture existing demand while top-of-funnel paid social typically creates new demand.",
-                                  "neutral")
+                                  "flat")
 
     # ---- Attribution vs incrementality gap ----
     cur_meta_roas = (cur_plats.get("facebook") or {}).get("roas")
@@ -609,7 +542,7 @@ def _compute_values(headline, raws, ccy):
         f"Meta {cur_meta_roas:.2f} vs blended {cur_blended:.2f}" if cur_meta_roas is not None and cur_blended is not None else "—",
         f"Meta {prv_meta_roas:.2f} vs blended {prv_blended:.2f}" if prv_meta_roas is not None and prv_blended is not None else "—",
         interp,
-        "neutral",
+        "flat",
     )
 
     # ---- Creative fatigue ----
@@ -620,47 +553,38 @@ def _compute_values(headline, raws, ccy):
         if t == "CREATIVE_LIMITED": n_creative_limited += 1
         if t == "FRAGMENTATION":    n_fragmentation += 1
     if n_creative_limited > 0:
-        sig = "negative"
-        interp = f"Meta flags {n_creative_limited} ad(s) as creative-limited and {n_fragmentation} fragmentation opportunit{'y' if n_fragmentation == 1 else 'ies'}. Both contribute to rising cost-per-result."
-    elif n_fragmentation > 3:
-        sig = "negative"
-        interp = f"Meta flags {n_fragmentation} ad-set fragmentation opportunities. Consolidation typically reduces cost-per-purchase."
+        interp = f"Meta flags {n_creative_limited} ad(s) as creative-limited and {n_fragmentation} fragmentation opportunit{'y' if n_fragmentation == 1 else 'ies'} this window."
     elif n_fragmentation > 0:
-        sig = "neutral"
-        interp = f"Meta flags {n_fragmentation} fragmentation opportunit{'y' if n_fragmentation == 1 else 'ies'}. Low priority unless paired with CPC inflation."
+        interp = f"Meta flags {n_fragmentation} fragmentation opportunit{'y' if n_fragmentation == 1 else 'ies'} this window."
     else:
-        sig = "positive"
         interp = "Meta returns no creative-fatigue or fragmentation flags this window."
     v["creative_fatigue"] = (
         f"{n_creative_limited} creative-limited; {n_fragmentation} fragmentation",
         "Baseline",
         interp,
-        sig,
+        "flat",
     )
 
     # ---- Frequency ----
     v["frequency"] = ("Per-campaign", "Per-campaign",
                       "Frequency is reported per Meta campaign in the campaign-insights pull. Sustained frequency >2.5 with declining CTR is the canonical fatigue pattern.",
-                      "neutral")
+                      "flat")
 
     # ---- Assisted conversions ----
     items = (fp_cur or {}).get("items") or []
     klav = next((i for i in items if (i.get("id") or "").lower() == "klaviyo"), None)
     klav_share = (klav or {}).get("share_of_orders")
     if klav_share is not None and klav_share > 0.15:
-        sig = "positive"
-        interp = f"Klaviyo is present in {klav_share*100:.1f}% of order journeys — material assist contribution; sustaining email cadence protects retention revenue."
+        interp = f"Klaviyo is present in {klav_share*100:.1f}% of order journeys — above the 15% threshold for material assist contribution."
     elif klav_share is not None and klav_share > 0:
-        sig = "neutral"
         interp = f"Klaviyo touches {klav_share*100:.1f}% of order journeys. Below the 15% threshold for material assist contribution."
     else:
-        sig = "neutral"
         interp = "No Klaviyo footprint detected in the journey data this window."
     v["assisted_conv"] = (
         f"Klaviyo {(klav_share or 0)*100:.1f}% of orders" if klav_share is not None else "—",
         "Baseline",
         interp,
-        sig,
+        "flat",
     )
 
     # ---- First-touch ----
@@ -668,17 +592,14 @@ def _compute_values(headline, raws, ccy):
     top_raw = (meta_fp or {}).get("top_share")
     top = top_raw or 0
     if top > 0.5:
-        sig = "positive"
         interp = f"Meta appears as the first touch in {top*100:.0f}% of journeys — consistent with a demand-creation role."
     elif top > 0:
-        sig = "neutral"
         interp = f"Meta appears as the first touch in {top*100:.0f}% of journeys."
     else:
-        sig = "neutral"
         interp = "No Meta footprint at the first-touch position this window."
     # "—" when the share is absent; "0%" only when a footprint genuinely reports zero.
     top_val = f"Meta top-share {top*100:.0f}%" if top_raw is not None else "—"
-    v["first_touch"] = (top_val, "Baseline", interp, sig)
+    v["first_touch"] = (top_val, "Baseline", interp, "flat")
 
     # ---- Last-touch ----
     bottom_g = next((i for i in items if (i.get("id") or "").lower() == "google"), None)
@@ -689,23 +610,21 @@ def _compute_values(headline, raws, ccy):
     else:
         interp = "No Google footprint at the last-touch position this window."
     bot_val = f"Google bottom-share {bot*100:.0f}%" if bot_raw is not None else "—"
-    v["last_touch"] = (bot_val, "Baseline", interp, "neutral")
+    v["last_touch"] = (bot_val, "Baseline", interp, "flat")
 
     # ---- Product mix ----
     v["product_mix"] = ("Not directly measurable", "Not directly measurable",
                         "Per-product order and revenue cuts are not exposed in this MCP. Use the AOV row's segment symmetry as a proxy for product-mix vs customer-mix attribution.",
-                        "neutral")
+                        "flat")
 
     # ---- Confidence ----
     n_anom = (anomalies or {}).get("anomalies")
     n_anom_count = len(n_anom) if isinstance(n_anom, list) else 0
     if n_anom_count == 0:
-        sig = "positive"
-        interp = "No anomalies flagged by the tracking-health monitor; platform accuracy reads 100%. The WoW direction is real, not a tracking artefact."
+        interp = "No anomalies flagged by the tracking-health monitor; platform accuracy reads 100%. The WoW direction reflects measured data, not a tracking artefact."
     else:
-        sig = "negative"
-        interp = f"{n_anom_count} anomal{'y' if n_anom_count == 1 else 'ies'} flagged by the tracking-health monitor — verify the affected days before acting on the WoW direction."
-    v["confidence"] = (f"{n_anom_count} anomalies", "Baseline", interp, sig)
+        interp = f"{n_anom_count} anomal{'y' if n_anom_count == 1 else 'ies'} flagged by the tracking-health monitor — the affected days may not reflect the underlying WoW direction."
+    v["confidence"] = (f"{n_anom_count} anomalies", "Baseline", interp, "flat")
 
     return v
 
@@ -714,8 +633,8 @@ def _compute_values(headline, raws, ccy):
 def transform(inputs: dict, config: dict) -> dict:
     """Return {"rows": [<row dict>, ...]} for the chrome to render.
 
-    Each row dict carries: id, name, indicates, bad, normal, good,
-    importance, value_current, value_prior, interpretation, signal.
+    Each row dict carries: id, name, indicates, importance,
+    value_current, value_prior, interpretation, signal.
     """
     headline = inputs.get("headline") or {}
     code = headline.get("currency") or (config or {}).get("store_currency") or ""
@@ -736,20 +655,17 @@ def transform(inputs: dict, config: dict) -> dict:
     computed = _compute_values(headline, raws, ccy)
 
     rows = []
-    for (mid, name, indicates, bad, normal, good, importance) in METRICS_STATIC:
-        result = computed.get(mid, ("—", "—", "—", "neutral"))
+    for (mid, name, indicates, importance) in METRICS_STATIC:
+        result = computed.get(mid, ("—", "—", "—", "flat"))
         if len(result) == 3:
             cur_str, prv_str, interp = result
-            signal = "neutral"
+            signal = "flat"
         else:
             cur_str, prv_str, interp, signal = result
         rows.append({
             "id":             mid,
             "name":           name,
             "indicates":      indicates,
-            "bad":            bad,
-            "normal":         normal,
-            "good":           good,
             "importance":     importance,
             "value_current":  cur_str,
             "value_prior":    prv_str,

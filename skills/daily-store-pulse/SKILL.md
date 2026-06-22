@@ -2,35 +2,33 @@
 name: daily-store-pulse
 description: >-
   Build the TrackBee Daily Store Pulse — a fast, self-contained HTML artifact
-  that answers "is my store healthy today?" at a glance for every store the
-  user has access to. It is the recurring morning check-in, NOT a deep
-  analysis: a portfolio verdict, then one pulse card per store with a clear
-  On track / Watch / Act now verdict, KPI tiles (revenue, orders, MER, ROAS,
-  PoAS, CAC — each yesterday-vs-trailing-7-day-baseline), month-to-date pacing,
-  a ranked "needs attention" list of anomalies and Meta warnings, top campaign
-  movers, and a go-deeper dock. Runs for ALL stores by default and renders a
-  client-side store filter. Always creates a live Cowork artifact under a
-  stable id and schedules a daily 08:00 refresh. Trigger whenever someone asks
-  for "daily vitals", "store pulse", "store health check", "how's the store
-  today", "morning briefing", "is the store on track", "did anything spike or
-  drop today", "MTD pacing", "daily baseline", "anything I need to act on
-  today", or any recurring intra-day status pull across one or many stores. Do
-  NOT use this for deep dives — ad-account diagnostics route to the performance
-  skill, budget scaling to scale-ads-profitably, and channel/journey/funnel
-  analysis to attribution.
+  surfacing yesterday's figures for every store the user can access. The
+  morning check-in, NOT a deep analysis: a portfolio summary of which stores
+  have a flagged anomaly today, then one card per store with KPI tiles
+  (revenue, orders, MER, ROAS, PoAS, CAC — each vs a trailing-7-day baseline
+  with the delta), month-to-date pacing, a ranked "needs attention" list of
+  anomalies and Meta flags, top campaign movers, and a go-deeper dock. Runs
+  for ALL stores by default with a store filter, creates a live Cowork
+  artifact, schedules a daily 08:00 refresh. Trigger for "daily vitals",
+  "store pulse", "store health check", "how's the store today", "morning
+  briefing", "did anything spike or drop today", "MTD pacing", "daily
+  baseline", "anything I need to act on today", or any recurring intra-day
+  status pull across stores. NOT for deep dives — diagnostics route to
+  performance, budget to scale-ads-profitably, channel/journey/funnel to
+  attribution.
 ---
 
 # Daily Store Pulse
 
-A fast daily "is my store healthy today?" read. Optimised for speed and a
-clear verdict, not exhaustiveness — the user should get the answer in one
-glance per store. The build is driven by a thin entry script
-(`scripts/build_pulse.py`) that loads small, focused components from
-`components/` and renders one pulse card per store plus a portfolio header.
+A fast daily read of yesterday's figures. Optimised for speed and skimmability,
+not exhaustiveness — the user should get the numbers in one glance per store.
+The build is driven by a thin entry script (`scripts/build_pulse.py`) that
+loads small, focused components from `components/` and renders one pulse card
+per store plus a portfolio header.
 
-When a store's payload is missing or empty the card still renders: the verdict
-reads "Watch — no data for yesterday yet" and each section degrades to a plain
-notice instead of failing the whole build.
+When a store's payload is missing or empty the card still renders: the KPI
+tiles and each section degrade to a plain "no data for yesterday yet" notice
+instead of failing the whole build.
 
 ## Workflow (the happy path)
 
@@ -117,8 +115,8 @@ notice instead of failing the whole build.
    refresh is scheduled."
 
 8. **Hand off short.** Print a `computer://` link to the HTML and the portfolio
-   verdict in one sentence (how many stores need attention and which). See
-   `references/handoff-template.md`.
+   summary in one sentence (how many stores have a flagged anomaly today and
+   which). See `references/handoff-template.md`.
 
 ## MCP calls (exact set, per store)
 
@@ -138,7 +136,7 @@ under `/tmp/daily_store_pulse_inputs/`.
 | `<id>__daily.json` | `tool__get_daily_store_statistics` | `trend` | Daily revenue series for the sparkline. `{store_currency, rows:[{date, total_revenue, total_orders, …}]}`, cents. |
 | `<id>__poas_yday.json` | `tool__get_profit_on_ad_spend` | `grain="platform"`, `yesterday`, `cost_overrides={}` | Profit/revenue ratio yesterday. PoAS = that ratio × ROAS; est. profit = ratio × revenue. Falls back to the store-level COGS % when per-variant cost is missing. |
 | `<id>__poas_base.json` | `tool__get_profit_on_ad_spend` | `grain="platform"`, `baseline` | Baseline profit/revenue ratio for the PoAS delta. |
-| `<id>__anomalies.json` | `tool__detect_anomalies` | `yesterday`, `sensitivity="medium"` | Yesterday's anomalies (revenue / orders / funnel / tracking_health). Drives the verdict + needs-attention list. `{anomalies:[…]}`. |
+| `<id>__anomalies.json` | `tool__detect_anomalies` | `yesterday`, `sensitivity="medium"` | Yesterday's anomalies (revenue / orders / funnel / tracking_health). Drives the needs-attention list and the portfolio flag count. `{anomalies:[…]}`. |
 | `<id>__meta_recs.json` | `tool__get_meta_recommendations` | store | Meta's own warnings (creative-limited, fragmentation, …). `{recommendations:[{type, description, opportunity_score_lift, trackbee_note}]}`. Tracking-flavoured recs (with `trackbee_note`) are defused, never shown as "your tracking is broken". |
 | `<id>__cmp_facebook_yday.json` | `tool__get_meta_campaign_insights` | `start_date=end_date=yesterday`, `status_filter="all"` | Per-campaign `spend` + `purchase_roas` (Meta). Spend in **units** of the ad-account currency. |
 | `<id>__cmp_facebook_prev.json` | `tool__get_meta_campaign_insights` | day **before** yesterday, `status_filter="all"` | Same shape — top movers rank by day-over-day spend swing and surface the ROAS swing. |
@@ -152,8 +150,8 @@ per store; a store with no Meta/Google ad account simply yields no movers.
 **Missing inputs:** if a tool errors (store not connected, no ad account, a
 window before onboarding, etc.), skip that file. The orchestrator tolerates
 absent files — affected KPI tiles render "—" and the affected sections show a
-plain notice. A store with no usable data renders a "Watch — no data for
-yesterday yet" verdict rather than a false "On track".
+plain notice. A store with no usable data renders a "no data for yesterday
+yet" notice on its KPI tiles rather than fabricated figures.
 
 **Currency:** every `get_dashboard_overview` / `get_daily_store_statistics` /
 `detect_anomalies` figure is in **cents of the store currency** — the parser
@@ -254,9 +252,8 @@ components/
     kpis.py                     the six KPI tiles (yesterday vs baseline)
     mtd.py                      month-to-date pacing vs implied pace
     movers.py                   top campaign movers by spend swing
-  insights/                     payload -> verdict / copy
-    verdict.py                  per-store verdict + portfolio roll-up
-    attention.py                anomalies + Meta warnings -> ranked list
+  insights/                     payload -> attention list / dock copy
+    attention.py                anomalies + Meta flags -> ranked list
     dock.py                     store-aware go-deeper prompts
   charts/
     sparkline.py                inline SVG daily-revenue sparkline
@@ -288,15 +285,18 @@ references/handoff-template.md  what to print to chat after the build
   and drifts from the visual spec.
 - **All stores, every run. Never ask which store.** The filter does the
   narrowing client-side; the scheduled refresh always pulls the full portfolio.
-- **Verdict over walls of numbers.** Every card must be skimmable in under ten
-  seconds: the verdict and its one-sentence why carry the card; the tiles and
-  sections back it up. Keep added copy short and concrete.
+- **Skimmable figures, no verdicts.** Every card must be skimmable in under ten
+  seconds: the KPI tiles (yesterday vs baseline, with the delta) and the
+  needs-attention list carry the card. The pulse presents measured figures and
+  the anomaly monitor's own flags — it never labels a store with a TrackBee
+  verdict. Keep added copy short and concrete.
 - **`tool__get_dashboard_overview` is the authoritative source** for spend,
   revenue, MER, ROAS, and CAC. Never substitute campaign-level numbers for the
   headline KPIs.
 - **Respect onboarding dates and empty returns.** Clamp windows to onboarding;
-  let new stores and quiet days render a "Watch — no data" verdict gracefully.
-- **Hand off short.** A `computer://` link plus the one-line portfolio verdict.
+  let new stores and quiet days render a "no data for yesterday yet" notice
+  gracefully.
+- **Hand off short.** A `computer://` link plus the one-line portfolio summary.
 - **Always create the live artifact AND schedule the daily refresh.** Skip only
   if the user explicitly says "one-off snapshot, don't schedule."
 - **Brand styling is fixed.** All v3 tokens live in

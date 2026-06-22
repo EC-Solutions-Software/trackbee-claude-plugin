@@ -12,13 +12,13 @@ For the chat hand-off after a render, see `handoff-template.md`.
 
 The page is one scrollable column. No tabs.
 
-1. **Header strip** — brand wordmark + "Attribution Report" + store name + window filter.
-2. **Executive Summary** — 3–4 plain-English takeaways for the active window.
+1. **Hero** — dark navy panel: dark-variant brand wordmark, window filter, "Attribution report" `h1`, store name, and the Executive summary takeaways.
+2. **Executive summary** — 3–4 plain-English takeaways for the active window (lives inside the hero panel).
 3. **Blended Overview** — KPI tiles + Blended NC-ROAS daily line chart.
 4. **Platform Overview** — per-platform tiles (Meta, Google, …) for the active window.
-5. **Channel Attribution** — per-channel table (TrackBee + in-platform sides) + {observation, action} insight cards.
-6. **Customer Journeys** — three KPI tiles, touch-points heatmap + insights, sankey with view filter + insights. *Removed entirely when the store has no shopper profiles.*
-7. **Store Funnel Analysis** — page view → order, with the biggest leak flagged and stage-specific fix-it insights.
+5. **Channel Attribution** — per-channel table (TrackBee + in-platform sides) + factual observation cards (ROAS / CPA / spend-share figures, no recommended action).
+6. **Customer Journeys** — three KPI tiles, touch-points heatmap + observations, sankey with view filter + observations. *Removed entirely when the store has no shopper profiles.*
+7. **Store Funnel Analysis** — page view → order, each stage showing its conversion rate and lost-shopper count.
 8. **Where to go next** — a grid of clickable follow-up prompts.
 9. **Footer** — generated date, caveats list, low-contrast wordmark.
 
@@ -32,25 +32,28 @@ All windowed sections are baked into `PAGE_DATA` for all three windows and
 rehydrated client-side by `components/chrome/app.js`. The two SVG charts and
 the heatmap are pre-rendered server-side and toggled with `display`.
 
-## 1. Header strip
+## 1. Hero
 
-- Wordmark (icon + "TrackBee" lockup) on the left, a thin vertical divider,
-  then **"Attribution Report"** as the `h1` with the store name in
-  `--ink-muted` underneath.
-- **Date filter** as a segmented pill — 3 days / 7 days / 28 days, default 28d.
+- Dark navy panel (`--navy` gradient), rounded `--radius-lg`.
+- Dark-variant wordmark (from `assets/tb_wordmark_dark_b64.txt`) top-left,
+  **window filter** as a segmented pill top-right — 3 days / 7 days /
+  28 days, default 28d; active segment is `--yellow` fill with `--navy` text.
+- Yellow mono eyebrow "Attribution overview", then **"Attribution report"**
+  as the `h1` (white, Lexend 700) with the store name in `--on-dark-muted`.
 - The window range, store currency, and ad-account FX live in the footer
   caveats, not under the `h1`.
 
-## 2. Executive Summary
+## 2. Executive summary
 
-Dark surface (`--ink` gradient), `--yellow` numbered counters, white prose.
+Inside the hero, below a hairline divider. `--yellow` numbered counters,
+lavender-tinted white prose (`--on-dark-muted`).
 Each takeaway is one sentence with a number, computed per window (updates on
 filter toggle). Produced by `components/insights/executive_summary.py`:
 
 1. **Headline performance** — revenue + orders + ad spend + Blended ROAS, with a delta vs the previous equal-length period.
-2. **Top contributing channel** — largest share of attributed revenue (skipped when the "Overall" row is the max). Ends "Protect its budget."
-3. **Scale or cut** — names the highest-ROAS paid channel when it clears ROAS ≥ 2.
-4. **Earned-revenue / over-credit risk** — the largest zero-spend channel's assisted revenue as an incrementality-test candidate.
+2. **Top contributing channel** — largest share of attributed revenue, stated as a percentage (skipped when the "Overall" row is the max).
+3. **Highest-ROAS paid channel** — names the channel and its ROAS figure.
+4. **Platform-vs-TrackBee count gap / earned revenue** — states the platform-reported vs TrackBee purchase counts neutrally, or the largest zero-spend channel's assisted revenue. No causal "over-reporting" direction.
 
 Monetary values format through the store-currency formatter
 (`components/chrome/format_helpers.py`) — the prose never hardcodes a symbol.
@@ -70,7 +73,7 @@ driven by the store currency.
 
 Daily line chart under the tiles. Heading "Blended NC ROAS (Acquisition MER)
 over time", subtitle "Daily new-customer revenue ÷ daily ad spend." Period
-avg shown in the header and as a dashed `--gold` line. Pre-rendered inline
+avg shown in the header and as a dashed honey-ink line. Pre-rendered inline
 SVG by `components/charts/nc_roas.py` (area fill, data points with hover
 tooltips, thinned MM-DD x labels) — no chart library. The active window's SVG
 is shown; the others are hidden `<div data-w="…">` blocks toggled by the
@@ -96,12 +99,13 @@ with a final "Overall" row. Rules:
 - **Spend, CPA, ROAS are pure in-platform** so they reconcile with Platform
   Overview to the cent (see metric-map.md).
 
-Below the table, a **"Key insights from your channel attribution"** card list
-(`--blue-tint`, observation + `Recommended action:`), computed by
+Below the table, a **"Key observations from your channel attribution"** card
+list (`--lavender`, observation only — no recommended action), computed by
 `components/insights/channel_attribution.py`: ROAS spread across paid
-channels, the CPA gap (cheapest vs priciest), an underinvested high-ROAS
-channel, a zero-spend earned channel, and any paid channel below 2× ROAS that
-still holds >10% of spend.
+channels, the CPA gap (cheapest vs priciest), the highest-ROAS channel holding
+under 15% of spend, a zero-spend earned channel, and any paid channel below 2×
+ROAS that still holds >10% of spend. Each card states the figures; none
+prescribes an action.
 
 ## 6. Customer Journeys
 
@@ -123,8 +127,8 @@ via `format_helpers.py`.
 Square grid: "When a customer interacts with platform A, how often do they
 interact with platform B?" Rows/cols auto-derived from the co-occurrence
 matrix, well-known platforms pinned first. The **diagonal is 100%**, rendered
-on `--ink` with `--yellow` text as a structural marker; off-diagonal cells
-use an `--accent` → `--blue-tint` intensity gradient. Plain HTML `<table>`
+on `--navy` with `--yellow` text as a structural marker; off-diagonal cells
+use a `--lavender` → `--blue-ink` intensity gradient. Plain HTML `<table>`
 with inline `background-color` — built by `components/transforms/heatmap.py`.
 Followed by a **"Key insights from your channel touch points"** card list
 (`components/insights/cooccurrence.py`): most-coupled pair, channels that
@@ -148,12 +152,13 @@ journey, cross-platform share, median depth, single-touch share.
 
 Window-scoped (responds to the top filter). Header shows the active window
 pill. Two summary stats — "Top to order" (page view → order rate) and
-"Biggest leak" (worst step-to-step stage + rate). Then a horizontal bar per
-stage (count + step-to-step rate + "from X — N lost" + "% of page views
-reach this step"). Below, a **"Key insights from your store funnel"** card
-list from `components/insights/funnel.py` — one entry per leaking stage,
-tuned to that stage's UX levers, worst-first. The page view → product view
-drop is excluded from "worst" by default (browsing behaviour) and only
+"Lowest step rate" (the lowest step-to-step stage + its rate). Then a
+horizontal bar per stage (count + step-to-step rate + "from X — N lost" + "%
+of page views reach this step"). Below, a **"Key observations from your store
+funnel"** card list from `components/insights/funnel.py` — one entry per
+leaking stage stating that stage's conversion rate and lost-shopper count,
+lowest-first. No recommended fix is attached. The page view → product view
+drop is excluded from "lowest" by default (browsing behaviour) and only
 surfaced when below 25%.
 
 ## 8. Where to go next
@@ -178,16 +183,23 @@ The tokens live in `components/chrome/theme.css` — the single source of
 truth; do not duplicate or fork them. Key values:
 
 ```css
---ink:#040F24; --ink-2:#21283B; --ink-muted:#696E7C;
---line:#CCD1DF; --surface-0:#FAFAFA; --surface-1:#FFFFFF;
---accent:#0072FF; --blue-tint:#DFEAFB; --gold:#E79810; --yellow:#FEC119;
---font-display:'PP Formula','Inter Tight','Inter',system-ui,sans-serif;
---font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+--navy:#0D1245; --lavender:#F0F2FF; --pink:#FF1F6B; --yellow:#FFCC00; --sky:#3D9EFF;
+--pink-ink:#C8124B; --honey-ink:#7A5C00; --blue-ink:#0066CC;
+--bg:#FAFAFA; --card:#FFFFFF; --inset:#FAFAFA; --muted-bg:#F5F5F5; --border:#E5E5E5;
+--fg:#0D1245; --fg-muted:#737373; --on-dark-muted:#E2E8F8;
+--font-display:'Lexend','Inter Tight',system-ui,sans-serif;
+--font-body:'Plus Jakarta Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+--font-mono:'JetBrains Mono','SFMono-Regular',ui-monospace,Menlo,monospace;
 ```
+
+These are the TrackBee brand v3 tokens (April 2026): Lexend for display,
+Plus Jakarta Sans for body, JetBrains Mono for eyebrows/tags; ink extensions
+for brand-hue text on light surfaces; yellow as accent only, never a panel
+fill.
 
 Platform colours (per-platform tiles + table icons): Meta `#1877F2`, Google
 `#4285F4`, Klaviyo `#7C3AED`, TikTok `#000000`, Pinterest `#E60023`, Email
-`#696E7C`.
+`#737373`.
 
 ## Brand marks
 
@@ -200,9 +212,11 @@ TrackBee) live in `components/chrome/logos.py` and are embedded into
 
 ## Copy tone
 
-Every observation and recommended action reads like product copy — direct,
-declarative, quantified. Each insight pairs an observation with a recommended
-action; the action is what turns a report into a decision.
+Every observation reads like product copy — direct, declarative, quantified.
+Each insight states a measured figure and stops there. The report does not
+attach a recommended action or a verdict to any figure — the reader interprets
+the numbers. (Platform-native fields, e.g. Google's own cannibalization flag,
+may be passed through as the platform states them.)
 
 ## Glossary
 

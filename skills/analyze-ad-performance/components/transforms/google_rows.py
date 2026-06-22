@@ -72,7 +72,6 @@ def campaign_row(c: dict, sym: str, g_fx: float, n_days: int, store_id) -> str:
         + _tm.cell(_fh.money(conv_val, sym), "num")
         + _tm.cell(_fh.number(roas, 2) if roas else "—", f"num {_fh.roas_class(roas)}")
         # Google has no frequency, so the action badge gets freq=0.
-        + _tm.cell(_tm.action_badge(roas, 0, spend))
         + _tm.cell(_fh.number(conv, 1) if conv else "—", "num")
         + _tm.cell("—", "num")  # reach — not in Google API
         + _tm.cell(_fh.integer(impr) if impr else "—", "num")
@@ -149,7 +148,6 @@ def ad_rows(items: list, sym: str, g_fx: float, n_days: int, store_id, campaign_
             + _tm.cell(_fh.money(spend, sym), "num")
             + _tm.cell(_fh.money(conv_val, sym), "num")
             + _tm.cell(_fh.number(roas, 2) if roas else "—", f"num {_fh.roas_class(roas)}")
-            + _tm.cell(_tm.action_badge(roas, 0, spend))
             + _tm.cell(_fh.number(conv, 1) if conv else "—", "num")
             + _tm.cell("—", "num")
             + _tm.cell(_fh.integer(impr) if impr else "—", "num")

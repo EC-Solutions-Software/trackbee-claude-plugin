@@ -28,7 +28,6 @@ CAMPAIGN_HEADERS = [
     ("Spend",         "spend",    "Total spend in the window"),
     ("Revenue",       "revenue",  "1d-click revenue (Meta) / Conversion value (Google)"),
     ("ROAS",          "roas",     "Return on ad spend (platform-reported)"),
-    ("Action",        "action",   "Suggested next move based on ROAS, frequency and spend"),
     ("Results",       "results",  "Purchases (Meta) / Conversions (Google)"),
     ("Reach",         "reach",    "Unique people reached"),
     ("Impressions",   "impr",     "Total impressions"),
@@ -72,42 +71,3 @@ def thead_html() -> str:
     """Render the table's <thead><tr>...</tr></thead> as one string."""
     cells = "".join(header(label, sk, tip) for label, sk, tip in CAMPAIGN_HEADERS)
     return f"<tr>{cells}</tr>"
-
-
-_INSIGHTS = Path(__file__).resolve().parent.parent / "insights"
-_t_spec = importlib.util.spec_from_file_location("thresholds", _INSIGHTS / "thresholds.py")
-assert _t_spec is not None and _t_spec.loader is not None
-_t = importlib.util.module_from_spec(_t_spec)
-_t_spec.loader.exec_module(_t)
-
-
-def action_badge(roas, freq, spend) -> str:
-    """Return the per-row SCALE / REFRESH / HOLD / PAUSE / — pill.
-
-    Decision boundaries come from `insights/thresholds.py`. Inputs may be
-    None / 0; the pill collapses to em-dash below the minimum-spend floor.
-    """
-    r = _fh.safe_float(roas)
-    f = _fh.safe_float(freq)
-    s = _fh.safe_float(spend)
-    if s < _t.SPEND_FLOOR_BADGE or r <= 0:
-        return '<span class="act-pill act-none">—</span>'
-    if r >= _t.ROAS_SCALE_CANDIDATE and (f == 0 or f < _t.FREQ_HEALTHY_SCALE):
-        return (
-            '<span class="act-pill act-scale" '
-            'title="Strong ROAS, frequency still healthy — increase budget">SCALE</span>'
-        )
-    if f >= _t.FREQ_FATIGUE and r >= _t.ROAS_PAUSE:
-        return (
-            '<span class="act-pill act-refresh" '
-            'title="Frequency high but ROAS holds — refresh creative">REFRESH</span>'
-        )
-    if r < _t.ROAS_PAUSE and s > _t.SPEND_FLOOR_PAUSE:
-        return (
-            '<span class="act-pill act-pause" '
-            'title="Below break-even at meaningful spend — review or pause">PAUSE</span>'
-        )
-    return (
-        '<span class="act-pill act-hold" '
-        'title="Performance OK but not exceptional — hold steady">HOLD</span>'
-    )

@@ -8,9 +8,8 @@ sentences** plus the artifact link — the pulse does the talking.
 ```
 [TrackBee daily store pulse](computer:///<abs-path-to-html>)
 
-<N of M> stores need attention this morning — <Act-now stores>, watch
-<watch stores>. Everything else is pacing normally. Live artifact created and a
-daily 08:00 refresh is scheduled.
+<K of M> stores flagged an anomaly today — <flagged store names>. The rest had
+nothing flagged. Live artifact created and a daily 08:00 refresh is scheduled.
 ```
 
 When nothing is flagged:
@@ -18,7 +17,7 @@ When nothing is flagged:
 ```
 [TrackBee daily store pulse](computer:///<abs-path-to-html>)
 
-All <M> stores are pacing normally this morning — nothing flagged. Live artifact
+No anomalies flagged across all <M> stores this morning. Live artifact
 created and a daily 08:00 refresh is scheduled.
 ```
 
@@ -27,9 +26,9 @@ created and a daily 08:00 refresh is scheduled.
 ```
 [TrackBee daily store pulse](computer://<workspace>/trackbee-daily-store-pulse-2026-06-03.html)
 
-2 of 4 stores need attention this morning — Act now on <STORE_A> (revenue fell
-hard and Meta flags creative fatigue), watch <STORE_B>. The rest are pacing
-normally. Live artifact created and a daily 08:00 refresh is scheduled.
+2 of 4 stores flagged an anomaly today — <STORE_A> (a revenue anomaly and a
+Meta creative-limited flag) and <STORE_B>. The rest had nothing flagged. Live
+artifact created and a daily 08:00 refresh is scheduled.
 ```
 
 ## What NOT to print

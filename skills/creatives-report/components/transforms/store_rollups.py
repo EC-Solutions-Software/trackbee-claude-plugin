@@ -1,16 +1,15 @@
 """Creatives Report — per-store roll-ups.
 
 Aggregates the unified ad records (from ``ad_processing.py``) into the
-header-tile KPIs and the SCALE / HOLD / REFRESH / KILL counts that
-drive the status chip row.
+header-tile KPIs (ad count, total spend / revenue / purchases, blended
+ROAS, average Meta frequency).
 
 Inputs: the store dict produced by the orchestrator (``ads`` list).
-Output: ``{n_ads, status_counts, total_spend, total_rev, ...}``."""
+Output: ``{n_ads, total_spend, total_rev, ...}``."""
 
 from __future__ import annotations
 
 import importlib.util
-from collections import Counter
 from pathlib import Path
 
 
@@ -37,7 +36,6 @@ def rollups(store: dict) -> dict:
     sym = store.get("sym") or ""
 
     spending = [a for a in ads if a["spend"] > 0]
-    status_counts = Counter(a["status_tag"] for a in spending)
 
     total_spend = sum(a["spend"]     for a in spending)
     total_rev   = sum(a["revenue"]   for a in spending)
@@ -51,7 +49,6 @@ def rollups(store: dict) -> dict:
 
     return {
         "n_ads":         len(spending),
-        "status_counts": status_counts,
         "total_spend":   total_spend,
         "total_rev":     total_rev,
         "total_purch":   total_purch,

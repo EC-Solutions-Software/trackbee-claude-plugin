@@ -3,7 +3,6 @@
 // Wires up (all delegated off `data-action` attributes — no inline onclick):
 //   * Store tabs           data-action="switch-store"     data-sid
 //   * Platform tabs        data-action="filter-platform"  data-plat data-sid
-//   * Status chips         data-action="filter-status"    data-status data-sid
 //   * Format <select>      data-action="filter-format"    data-sid
 //   * Search input         data-action="filter-search"    data-sid
 //   * Sortable headers     th[data-sort] click-to-sort with asc/desc indicator
@@ -16,7 +15,6 @@
   const state = {
     store:     null,
     platform:  {},
-    status:    {},
     format:    {},
     search:    {},
   };
@@ -39,13 +37,6 @@
     applyFilters(sid);
   }
 
-  function filterStatus(btn, sid) {
-    document.querySelectorAll('#store-' + sid + ' .chip').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.status[sid] = btn.dataset.status;
-    applyFilters(sid);
-  }
-
   function filterFormat(sid) {
     const el = document.getElementById('fmt-' + sid);
     state.format[sid] = el ? (el.value || 'all') : 'all';
@@ -60,20 +51,17 @@
 
   function applyFilters(sid) {
     const plat   = state.platform[sid] || 'all';
-    const status = state.status[sid]   || 'all';
     const fmt    = state.format[sid]   || 'all';
     const term   = state.search[sid]   || '';
     const rows = document.querySelectorAll('#tbody-' + sid + ' tr.ad-row');
     rows.forEach(function (row) {
       const rPlat   = row.dataset.platform || '';
-      const rStatus = row.dataset.status   || '';
       const rFmt    = row.dataset.format   || '';
       const rName   = row.dataset.name     || '';
       const platOk   = (plat === 'all'   || rPlat === plat);
-      const statusOk = (status === 'all' || rStatus === status);
       const fmtOk    = (fmt === 'all'    || rFmt === fmt);
       const searchOk = (!term            || rName.indexOf(term) !== -1);
-      row.classList.toggle('hidden', !(platOk && statusOk && fmtOk && searchOk));
+      row.classList.toggle('hidden', !(platOk && fmtOk && searchOk));
     });
   }
 
@@ -153,8 +141,6 @@
       switchStore(t.dataset.sid);
     } else if (action === 'filter-platform') {
       filterPlatform(t, t.dataset.plat, t.dataset.sid);
-    } else if (action === 'filter-status') {
-      filterStatus(t, t.dataset.sid);
     } else if (action === 'ask-question') {
       activateQuestion(t);
     }

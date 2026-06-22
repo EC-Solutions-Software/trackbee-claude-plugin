@@ -80,7 +80,7 @@ def _render_metrics_rows(rows: list[dict]) -> str:
     for r in rows or []:
         importance = r.get("importance") or "Medium"
         imp_cls = importance.lower()
-        signal = (r.get("signal") or "neutral").lower()
+        signal = (r.get("signal") or "flat").lower()
         out.append(
             f'<tr data-importance="{_esc(importance)}" data-signal="{_esc(signal)}">'
             f'<td><div class="metric-name">{_esc(r.get("name"))}</div></td>'
@@ -116,8 +116,8 @@ def build(inputs_dir: Path, config: dict) -> str:
 
     # ----- Exclusion note -----
     # Resolve the user-chosen campaign exclusions back to names so the report
-    # can state, in plain language, which campaigns it left out of the
-    # recommendations. Nothing is hidden silently.
+    # can state, in plain language, which campaigns it left out. Nothing is
+    # hidden silently.
     exclude = {str(x) for x in ((config.get("scope") or {}).get("exclude_campaign_ids") or [])}
     excluded_names = []
     if exclude:
@@ -127,8 +127,8 @@ def build(inputs_dir: Path, config: dict) -> str:
                     excluded_names.append(c.get("campaign_name") or str(c.get("campaign_id")))
     if excluded_names:
         _names = ", ".join(_esc(n) for n in excluded_names)
-        exclusion_note = (f'<div class="exclusion-note">Excluded at your request from the '
-                          f'recommendations: {len(excluded_names)} campaign(s) — {_names}.</div>')
+        exclusion_note = (f'<div class="exclusion-note">Excluded at your request: '
+                          f'{len(excluded_names)} campaign(s) — {_names}.</div>')
     else:
         exclusion_note = ""
 
@@ -196,7 +196,6 @@ def build(inputs_dir: Path, config: dict) -> str:
         "{ANSWER_BLOCK}":     answer["answer_block"],
         "{WORKING_LIST}":     _render_split_items(drivers_payload.get("working") or []),
         "{BREAKING_LIST}":    _render_split_items(drivers_payload.get("breaking") or []),
-        "{ACTIONS_LIST}":     answer["actions_list"],
         "{EXCLUSION_NOTE}":   exclusion_note,
         "{CURRENT_HEADER}":   _esc(current_header),
         "{PRIOR_HEADER}":     _esc(prior_header),

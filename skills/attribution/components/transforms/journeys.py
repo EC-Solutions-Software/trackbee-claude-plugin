@@ -11,7 +11,7 @@ MAX_SEQ = 3  # truncate all journey paths to at most 3 touchpoints
 
 PLATFORM_COLOR = {
     "meta": "#1877F2", "google": "#4285F4", "klaviyo": "#7C3AED",
-    "tiktok": "#000000", "pinterest": "#E60023", "email": "#696E7C",
+    "tiktok": "#000000", "pinterest": "#E60023", "email": "#737373",
 }
 
 
@@ -43,9 +43,9 @@ def build_sankey(paths):
         tagged = []
         for i, plat in enumerate(seq):
             label = f"{plat} @ step {i+1}"
-            add_node(label, PLATFORM_COLOR.get(plat, "#9CA3AF"))
+            add_node(label, PLATFORM_COLOR.get(plat, "#737373"))
             tagged.append(label)
-        add_node("Order", "#040F24")
+        add_node("Order", "#0D1245")
         tagged.append("Order")
         for a, b in zip(tagged, tagged[1:]):
             k = (nodes[a], nodes[b])

@@ -1,8 +1,9 @@
-"""Google key insights + recommendations.
+"""Google key observations.
 
 Mirrors `meta_insights.build` for Google's API surface. Surfaces campaign
-mix, top revenue driver, brand-cannibalization warnings, non-branded
-search efficiency, and scale / review recommendations.
+mix, top revenue driver, Google's own branded-search share, and
+non-branded search CPA — all as measured figures, no scoring or
+recommendations.
 """
 
 from __future__ import annotations
@@ -23,16 +24,14 @@ def _load(name: str, path: Path):
 
 
 _fh = _load("format_helpers", _CHROME / "format_helpers.py")
-_t = _load("thresholds", _HERE / "thresholds.py")
 
 
-def build(campaigns: list[dict], sym: str, g_fx: float) -> tuple[list[str], list[str]]:
+def build(campaigns: list[dict], sym: str, g_fx: float) -> list[str]:
     active = [c for c in campaigns if _fh.safe_float(c.get("spend")) > 0]
     if not active:
-        return ["No spending Google campaigns in this window."], []
+        return ["No spending Google campaigns in this window."]
 
     insights: list[str] = []
-    recs: list[str] = []
 
     pmax = [c for c in active if c.get("campaign_type") == "PERFORMANCE_MAX"]
     search = [c for c in active if c.get("campaign_type") == "SEARCH"]
@@ -69,7 +68,7 @@ def build(campaigns: list[dict], sym: str, g_fx: float) -> tuple[list[str], list
                 f"Top revenue driver: <strong>{name}</strong> — {revenue_str}."
             )
 
-    # Brand cannibalisation flags (Search campaigns only).
+    # Branded-search share (Search campaigns Google's own analysis flags).
     canni = [
         c for c in search
         if (c.get("branded_search_analysis") or {}).get("cannibalization_risk") == "high"
@@ -78,9 +77,9 @@ def build(campaigns: list[dict], sym: str, g_fx: float) -> tuple[list[str], list
         bsa = c.get("branded_search_analysis", {})
         branded_pct = _fh.safe_float(bsa.get("branded_spend_share", 0)) * 100
         insights.append(
-            f"High brand cannibalization: "
-            f"<strong>{_fh.text(_fh.short(c['campaign_name'], 40))}</strong> "
-            f"— {branded_pct:.0f}% of spend on branded terms. Add negative keywords."
+            f"<strong>{_fh.text(_fh.short(c['campaign_name'], 40))}</strong>: "
+            f"{branded_pct:.0f}% of spend is on branded terms "
+            f"(Google flags this campaign's cannibalization risk as high)."
         )
 
     # Non-branded search efficiency.
@@ -99,24 +98,4 @@ def build(campaigns: list[dict], sym: str, g_fx: float) -> tuple[list[str], list
                 f"across {len(nb)} campaign(s)."
             )
 
-    # Scale and review recommendations.
-    for c in active:
-        roas = _fh.google_roas(c)
-        spend = _fh.safe_float(c.get("spend"))
-        name = _fh.text(_fh.short(c["campaign_name"], 44))
-        if roas and roas >= _t.ROAS_GOOGLE_SCALE and spend > _t.SPEND_FLOOR_BADGE:
-            recs.append(
-                f"<strong>Scale:</strong> {name} — {roas:.1f}× ROAS. "
-                "Strong efficiency. Increase budget 20–40%."
-            )
-        elif roas and roas < 1.0 and spend > _t.SPEND_FLOOR_PAUSE:
-            recs.append(
-                f"<strong>Review:</strong> {name} — {roas:.2f}× ROAS "
-                f"(below break-even) on {_fh.money(spend * g_fx, sym)}. "
-                "Audit conversion tracking and bid strategy."
-            )
-
-    if not recs:
-        recs.append("All spending Google campaigns are within healthy ranges.")
-
-    return insights, recs
+    return insights

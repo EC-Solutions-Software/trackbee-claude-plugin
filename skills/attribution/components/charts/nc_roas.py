@@ -16,8 +16,8 @@ def render_nc_roas_svg(daily):
     PT, PB, PL, PR = 14, 30, 38, 14
     n = len(daily)
     if not n:
-        return ('<div style="padding:24px;color:#696E7C;background:#FAFAFA;'
-                'border:1px solid #CCD1DF;border-radius:8px;font-size:13px;'
+        return ('<div style="padding:24px;color:#737373;background:#FAFAFA;'
+                'border:1px solid #E5E5E5;border-radius:8px;font-size:14px;'
                 'text-align:center">No data for this window.</div>'), 0
     vals = [d["value"] for d in daily]
     tot_rev = sum(d.get("nc_revenue", 0) for d in daily)
@@ -44,19 +44,19 @@ def render_nc_roas_svg(daily):
         gy = y(gv)
         ticks.append(
             f'<line x1="{PL}" y1="{gy:.1f}" x2="{W-PR}" y2="{gy:.1f}" '
-            f'stroke="rgba(204,209,223,0.6)" stroke-width="1"/>'
+            f'stroke="rgba(229,229,229,0.9)" stroke-width="1"/>'
         )
         ticks.append(
-            f'<text x="{PL-6}" y="{gy+3:.1f}" font-size="10" fill="#696E7C" '
-            f'text-anchor="end" font-family="Inter, system-ui">{gv:.1f}</text>'
+            f'<text x="{PL-6}" y="{gy+3:.1f}" font-size="10" fill="#737373" '
+            f'text-anchor="end" font-family="Plus Jakarta Sans, system-ui">{gv:.1f}</text>'
         )
     step = max(1, n // 7)
     xlabels = []
     for i, d in enumerate(daily):
         if i % step == 0 or i == n - 1:
             xlabels.append(
-                f'<text x="{x(i):.1f}" y="{H-PB+16}" font-size="10" fill="#696E7C" '
-                f'text-anchor="middle" font-family="Inter, system-ui">{d["date"][5:]}</text>'
+                f'<text x="{x(i):.1f}" y="{H-PB+16}" font-size="10" fill="#737373" '
+                f'text-anchor="middle" font-family="Plus Jakarta Sans, system-ui">{d["date"][5:]}</text>'
             )
     dots_parts = []
     for i, v in enumerate(vals):
@@ -70,7 +70,7 @@ def render_nc_roas_svg(daily):
         # Visible dot
         dots_parts.append(
             f'<circle cx="{x(i):.1f}" cy="{y(v):.1f}" '
-            f'r="{2.5 if n <= 7 else 1.8}" fill="#0072FF"></circle>'
+            f'r="{2.5 if n <= 7 else 1.8}" fill="#FF1F6B"></circle>'
         )
         # Larger transparent hit-target with data-tip so hovering anywhere
         # near the point reveals the tooltip — solves the 1-px-dot problem.
@@ -85,13 +85,13 @@ def render_nc_roas_svg(daily):
         f'xmlns="http://www.w3.org/2000/svg" role="img" '
         f'aria-label="NC ROAS over time">'
         f'{"".join(ticks)}'
-        f'<path d="{area_d}" fill="rgba(0,114,255,0.10)" stroke="none"/>'
-        f'<polyline points="{pts_str}" fill="none" stroke="#0072FF" stroke-width="2"/>'
+        f'<path d="{area_d}" fill="rgba(255,31,107,0.08)" stroke="none"/>'
+        f'<polyline points="{pts_str}" fill="none" stroke="#FF1F6B" stroke-width="2"/>'
         f'{dots}'
         f'<line x1="{PL}" y1="{avg_y:.1f}" x2="{W-PR}" y2="{avg_y:.1f}" '
-        f'stroke="rgba(231,152,16,0.7)" stroke-width="1.5" stroke-dasharray="4 4"/>'
+        f'stroke="rgba(122,92,0,0.7)" stroke-width="1.5" stroke-dasharray="4 4"/>'
         f'<text x="{W-PR-4}" y="{avg_y-4:.1f}" font-size="10" '
-        f'fill="rgba(231,152,16,1)" text-anchor="end" font-family="Inter, system-ui">'
+        f'fill="#7A5C00" text-anchor="end" font-family="Plus Jakarta Sans, system-ui">'
         f'avg {avg:.2f}</text>'
         f'{"".join(xlabels)}'
         f'</svg>'

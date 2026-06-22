@@ -17,12 +17,16 @@ from pathlib import Path
 
 
 def wordmark_img(assets_dir: Path) -> str:
-    """The TrackBee wordmark for the page header (base64 data URL)."""
-    b64 = (Path(assets_dir) / "tb_wordmark_b64.txt").read_text().strip()
+    """The TrackBee wordmark for the hero header (base64 data URL).
+
+    The hero is a navy panel, so this serves the dark-variant wordmark
+    per the brand variant decision tree.
+    """
+    b64 = (Path(assets_dir) / "tb_wordmark_dark_b64.txt").read_text().strip()
     return (
         f'<img src="data:image/png;base64,{b64}" '
         f'alt="TrackBee" aria-label="TrackBee" '
-        f'style="height:34px;width:auto;display:block">'
+        f'style="height:26px;width:auto;display:block">'
     )
 
 
@@ -79,7 +83,7 @@ LOGO_PINTEREST = """
 # Microsoft Ads — Microsoft 4-square logo.
 LOGO_MICROSOFT = """
 <svg viewBox="0 0 24 24" width="14" height="14" xmlns="http://www.w3.org/2000/svg" aria-label="Microsoft" style="vertical-align:-3px">
-  <rect width="24" height="24" rx="3" fill="#FFFFFF" stroke="#CCD1DF" stroke-width="0.5"/>
+  <rect width="24" height="24" rx="3" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="0.5"/>
   <rect x="3"  y="3"  width="8" height="8" fill="#F25022"/>
   <rect x="13" y="3"  width="8" height="8" fill="#7FBA00"/>
   <rect x="3"  y="13" width="8" height="8" fill="#00A4EF"/>

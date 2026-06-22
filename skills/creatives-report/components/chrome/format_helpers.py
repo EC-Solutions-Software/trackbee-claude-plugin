@@ -102,28 +102,14 @@ def parse_date(s):
 
 
 def roas_class(roas) -> str:
-    # Class names and thresholds mirror analyze-ad-performance's
-    # format_helpers.py so the same value gets the same status across
-    # dashboards — keep the two in sync.
-    if roas is None:
-        return ""
-    r = safe_float(roas)
-    if r >= 2.5:
-        return "good"
-    if r >= 1.5:
-        return "ok"
-    if r > 0:
-        return "bad"
+    # Neutral by design: we present the measured number only and never
+    # colour-code it good/bad. Mirrors analyze-ad-performance's
+    # format_helpers.py — keep the two in sync.
     return ""
 
 
 def freq_class(freq) -> str:
-    # Mirrors analyze-ad-performance — see roas_class above.
-    f = safe_float(freq)
-    if f >= 4.0:
-        return "bad"
-    if f >= 3.0:
-        return "ok"
+    # Neutral by design — see roas_class. No good/ok/bad colour-coding.
     return ""
 
 

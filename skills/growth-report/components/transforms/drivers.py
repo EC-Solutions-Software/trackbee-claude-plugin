@@ -139,7 +139,7 @@ def transform(inputs: dict, config: dict) -> dict:
     if d is not None and d > GROWTH_MIN_PCT:
         working.append({
             "title": f"LTV {_signed(d, 1)} ({_ccy(prv.get('ltv'), ccy)} → {_ccy(cur.get('ltv'), ccy)})",
-            "why":   "Modelled customer lifetime value is increasing — supports continued paid acquisition reinvestment.",
+            "why":   "Modelled customer lifetime value rose week-over-week.",
         })
 
     # Cross-channel assist signal — only when grounded in footprint share
@@ -208,7 +208,7 @@ def transform(inputs: dict, config: dict) -> dict:
             breaking.append({
                 "title": f"{label} CPC {_signed(d_cpc, 0)} ({_ccy(p_cpc, ccy)} → {_ccy(c_cpc, ccy)})",
                 "why":   "Cost per click is rising materially on similar spend — consistent with auction "
-                         "pressure or creative fatigue. Verify against Meta's recommendations panel for the account.",
+                         "pressure or creative fatigue.",
             })
 
     # Channels with ROAS collapse — same platform set as the improvement
@@ -228,13 +228,18 @@ def transform(inputs: dict, config: dict) -> dict:
                          "demand-generation campaigns are usually the largest driver of channel-level ROAS swings.",
             })
 
-    # LTV:CAC warning
+    # LTV:CAC below the floor — stated as the measured ratio with its inputs,
+    # no target/verdict framing.
     ltv_cac = cur.get("ltv_cac")
     if ltv_cac is not None and ltv_cac < LTV_CAC_FLOOR:
+        ltv_v = cur.get("ltv")
+        cac_v = cur.get("cac")
+        inputs_clause = (f" — {_ccy(ltv_v, ccy)} modelled LTV ÷ {_ccy(cac_v, ccy)} CAC"
+                         if ltv_v is not None and cac_v else "")
         breaking.append({
-            "title": f"LTV:CAC at {ltv_cac:.2f}× (sub-2× target)",
-            "why":   "Acquisition unit economics are at or near break-even before COGS and overhead. "
-                     "Any auction-cost increase or AOV softness compresses contribution further.",
+            "title": f"LTV:CAC at {ltv_cac:.2f}×",
+            "why":   f"Modelled lifetime value is {ltv_cac:.2f}× acquisition cost this "
+                     f"window{inputs_clause}.",
         })
 
     return {"working": working[:6], "breaking": breaking[:6]}

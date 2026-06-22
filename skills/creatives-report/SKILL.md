@@ -2,20 +2,19 @@
 name: creatives-report
 description: >-
   Generate a TrackBee-branded Creatives Report Dashboard — a self-contained
-  HTML report covering the **last 7 days only**. Every spending ad is
-  scored SCALE / HOLD / REFRESH / KILL on absolute thresholds (no
-  week-over-week comparison), grouped by product and format into a
-  prioritised production plan. Always installs as a live Cowork artifact
-  and schedules a daily 8am refresh. Use whenever someone asks about
-  creative fatigue, which ads to refresh, kill or replace right now, which
-  content types or formats win for a product, what to produce next, video
-  vs static or carousel performance, ad burnout, a cross-platform creative
-  breakdown, "audit my creatives", "open the creatives report", or any
-  request to review, score or act on individual ads, not campaigns.
-  Distinct from analyze-ad-performance (campaign-level ROAS and
-  spend-scale) — use creatives-report to score individual ads for creative
-  wear-out and format mix. For audience-level fatigue (account-wide CPM /
-  frequency, reach saturation), use diagnose-audience-health.
+  HTML report covering the **last 7 days only**. Presents each spending ad's
+  measured statistics (spend, ROAS, frequency, reach, net-new-reach share,
+  purchases, new-customer share, 1d/28d), grouped by product and format with
+  per-format median ROAS / CTR / CPA. Always installs as a live Cowork
+  artifact and schedules a daily 8am refresh. Use whenever someone asks about
+  creative performance, ad frequency and reach, which content types or formats
+  perform for a product, video vs static or carousel performance, a
+  cross-platform creative breakdown, "audit my creatives", "open the creatives
+  report", or any request to review the figures for individual ads, not
+  campaigns. Distinct from analyze-ad-performance (campaign-level metrics) —
+  use creatives-report for per-ad creative statistics and format mix. For
+  audience-level metrics (account-wide CPM / frequency, reach saturation), use
+  diagnose-audience-health.
 ---
 
 # Creatives Report Dashboard
@@ -152,21 +151,21 @@ the user gets every piece of data we actually have.
         mcp__cowork__create_artifact with the SAME id
         "<store-slug>-creatives-report" and the new html_path.
         Same id = update, not duplicate.
-     4. Print one line to chat: how many ads are SCALE / KILL right
-        now, the single highest-priority production recommendation,
-        and the artifact link as computer://<absolute-path>.
+     4. Print one line to chat: the active-ad count this week, total
+        spend and blended ROAS, and the artifact link as
+        computer://<absolute-path>.
      ```
 
    Tell the user one line: "Live artifact created and a daily 8am
    refresh is scheduled."
 
 10. **Hand off.** Print a `computer://` link to the HTML and a 2-3
-    sentence headline (active-ad count this week, SCALE vs KILL count,
-    the single highest-priority production recommendation). Full
-    template in `references/handoff-template.md`.
+    sentence headline (active-ad count this week, total spend and blended
+    ROAS, median frequency). Full template in
+    `references/handoff-template.md`.
 
 If anything in the spec needs clarifying — what each section should
-look like, how scoring is computed, brand tokens, copy tone — read
+look like, how the figures are computed, brand tokens, copy tone — read
 `references/dashboard-spec.md`. **Don't read it for normal runs.**
 It's only needed when modifying a component or designing a new
 variant.
@@ -187,8 +186,8 @@ failing the build.
 | --- | --- | --- |
 | `{store_id}_meta.json` | `tool__get_meta_campaign_insights`, `status_filter="all"` | Last 7 days. Scaffolding to identify spending campaigns to drill into. |
 | `{store_id}_google.json` | `tool__get_google_campaign_insights`, `status_filter="all"` | Last 7 days. Same. |
-| `{store_id}_meta_ads_{campaign_id}.json` | `tool__get_meta_ad_insights` | One per spending Meta campaign over the last 7 days. **Primary ad-level data.** Includes a nested `creative` object (carries the format enum + image/video refs), `purchases_1d_click`, `purchases_28d_click`, `new_customer_purchases`. Note: `net_new_reach` is **not** currently returned by this tool, so the NNR-based REFRESH signal is dormant (see `references/metric-map.md`). Cap: if a store has > 12 spending campaigns this week, fetch the top 10 by spend. |
-| `{store_id}_google_ads_{campaign_id}.json` | `tool__get_google_ad_insights` | One per spending Google campaign. PMAX returns asset groups (excluded from fatigue scoring); Search / Shopping return ads. |
+| `{store_id}_meta_ads_{campaign_id}.json` | `tool__get_meta_ad_insights` | One per spending Meta campaign over the last 7 days. **Primary ad-level data.** Includes a nested `creative` object (carries the format enum + image/video refs), `purchases_1d_click`, `purchases_28d_click`, `new_customer_purchases`. Note: `net_new_reach` is **not** currently returned by this tool, so the net-new-reach-share column reads "—" for those ads (see `references/metric-map.md`). Cap: if a store has > 12 spending campaigns this week, fetch the top 10 by spend. |
+| `{store_id}_google_ads_{campaign_id}.json` | `tool__get_google_ad_insights` | One per spending Google campaign. PMAX returns asset groups (no per-asset spend); Search / Shopping return ads. |
 | `{store_id}_anomalies.json` | `tool__detect_anomalies` | Sudden drops / spikes in the window. Rendered as a banner above the table. |
 
 Phases run **in order**: Phase 1 (campaign-level) first, then the user
@@ -242,8 +241,8 @@ for currencies present on the store's ad accounts; if they all match
 `store_currency`, pass `{}`.
 
 The window should cover exactly 7 days (`end - start = 6 days`). The
-entry script warns on stderr if it doesn't but still builds — fatigue
-scoring uses absolute thresholds either way.
+entry script warns on stderr if it doesn't but still builds — every
+figure is computed over whatever window is supplied.
 
 ## Component layout
 
@@ -257,16 +256,14 @@ components/
     theme.css                  TrackBee brand v3 tokens + section CSS
     format_helpers.py          build-time currency / number / pct formatters + currency-symbol table
     render_formatters.js       client-side formatters for table interactivity
-    table_filters.js           client-side platform / status / format / search filters
+    table_filters.js           client-side platform / format / search filters
     logos.py                   inline SVG marks for platforms + brand
   transforms/                  raw JSON → per-store payload dicts
-    ad_processing.py           Meta + Google raw ads → unified records
-    fatigue_scoring.py         SCALE / HOLD / REFRESH / KILL decision tree (absolute thresholds)
-    store_rollups.py           KPI tiles + status counts per store
+    ad_processing.py           Meta + Google raw ads → unified per-ad records
+    store_rollups.py           KPI tiles per store (ad count, spend, ROAS, frequency)
     product_format_grid.py     per-product × per-format metric grids
-  insights/                    payload → textual recommendation cards
-    production_recommendations.py    Replace / Double down / Fill gap / Theme / Bleed
-    next_questions.py                Q1-Q3 follow-up prompts
+  insights/                    payload → factual follow-up question cards
+    next_questions.py                Q1-Q3 neutral follow-up prompts
   views/                       per-section HTML templates stamped by the orchestrator
   orchestrators/
     assemble.py                loads each component + stamps the views into the page
@@ -288,7 +285,7 @@ scripts/build_dashboard.py        entry script (thin wrapper)
 components/                       modular build kit (see §Component layout)
 assets/tb_icon_b64.txt            TrackBee icon, base64 (+ source trackbee-icon.png)
 assets/tb_wordmark_b64.txt        TrackBee wordmark, base64 (+ source trackbee-wordmark.png)
-references/dashboard-spec.md      fatigue scoring methodology + per-section spec
+references/dashboard-spec.md      per-section spec (metric columns + layout)
 references/metric-map.md          MCP field mapping reference
 references/handoff-template.md    what to print to chat after rendering
 ```

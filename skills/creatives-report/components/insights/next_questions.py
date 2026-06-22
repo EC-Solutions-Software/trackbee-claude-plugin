@@ -1,13 +1,14 @@
 """Creatives Report — next-question generator.
 
-After surfacing the data, what should the user ask the assistant
-next? Returns up to 3 question cards, each with the question text plus
-a "why this matters" rationale built from the actual numbers."""
+After surfacing the data, what could the user ask the assistant next?
+Returns up to 3 neutral question cards, each with the question text plus
+a "why this matters" note built from the actual numbers. The cards state
+measured figures and pose open questions — they do not prescribe actions
+or score the ads."""
 
 from __future__ import annotations
 
 import importlib.util
-from collections import Counter
 from pathlib import Path
 
 
@@ -35,60 +36,51 @@ def questions(store: dict) -> list[dict]:
     sym = store.get("sym") or ""
     out: list[dict] = []
 
-    kills = [a for a in ads if a["status_tag"] == "KILL"]
-    if kills:
-        a = max(kills, key=lambda x: x["spend"])
+    # Highest-spend ad with a defined ROAS below 1.0 (spent real money,
+    # returned less than it cost this window). Stated as a figure, not a verdict.
+    low_roas = [a for a in ads if a.get("roas") is not None and a["roas"] < 1.0]
+    if low_roas:
+        a = max(low_roas, key=lambda x: x["spend"])
         out.append({
-            "q":  (f"Why is {short(a['ad_name'], 44)} under-performing — "
-                   f"is it the creative, the audience, or the offer?"),
-            "why": (f"{a['format']} ad spent {fmt_money(a['spend'], sym)} "
-                    f"this week at {fmt_float(a['roas'], 2)}× ROAS. "
-                    f"Compare CTR ({fmt_pct(a['ctr'])}) to your other "
-                    f"{a['format']} ads, check audience overlap, and "
-                    f"test a fresh angle before pausing."),
+            "q":  (f"What's behind {short(a['ad_name'], 44)}'s "
+                   f"{fmt_float(a['roas'], 2)}× ROAS this week?"),
+            "why": (f"This {a['format']} ad spent {fmt_money(a['spend'], sym)} "
+                    f"at {fmt_float(a['roas'], 2)}× ROAS and "
+                    f"{fmt_pct(a['ctr'])} CTR. You can compare its CTR and "
+                    f"CPA against your other {a['format']} ads to see how it "
+                    f"sits in the set."),
         })
 
-    scales = [a for a in ads if a["status_tag"] == "SCALE"]
-    if scales:
-        by_fmt: Counter = Counter(a["format"] for a in scales)
-        top_fmt, _n = by_fmt.most_common(1)[0]
-        top_scale = max([a for a in scales if a["format"] == top_fmt],
-                        key=lambda a: a["spend"])
-        out.append({
-            "q":  (f"How much budget can {top_fmt} carry across your "
-                   f"account before frequency saturates?"),
-            "why": (f"{len(scales)} SCALE-tagged ad"
-                    f"{'s' if len(scales) != 1 else ''} this week — top: "
-                    f"{short(top_scale['ad_name'], 38)} at "
-                    f"{fmt_float(top_scale['roas'], 2)}× ROAS. Increase "
-                    f"{top_fmt} budget 20–30% across the SCALE set and "
-                    f"monitor frequency, CPM, and new-customer share "
-                    f"over 48 hours."),
-        })
+    # Highest Meta frequency this window (impressions ÷ reach per person).
+    freq_ads = [a for a in ads
+                if a["platform"] == "meta" and a.get("frequency") is not None]
+    if freq_ads:
+        a = max(freq_ads, key=lambda x: x["frequency"])
+        if a["frequency"] >= 2.5:
+            out.append({
+                "q":  (f"How is {short(a['ad_name'], 44)}'s performance "
+                       f"changing as its frequency rises?"),
+                "why": (f"Frequency is {fmt_float(a['frequency'], 1)}× on "
+                        f"{fmt_money(a['spend'], sym)} of spend at "
+                        f"{fmt_float(a['roas'], 2)}× ROAS this week. You can "
+                        f"track CTR and CPA against frequency over the coming "
+                        f"days to see how they move together."),
+            })
 
-    refresh = [a for a in ads if a["status_tag"] == "REFRESH"]
-    if len(refresh) >= 2:
-        out.append({
-            "q":  ("Which creative angle should the next production "
-                   "batch focus on?"),
-            "why": (f"{len(refresh)} ads tagged REFRESH this week — "
-                    f"frequency or net-new-reach signals are firing. "
-                    f"Review the SCALE-tagged ads above to seed angles "
-                    f"for the next round, then schedule launches in "
-                    f"waves rather than all at once."),
-        })
-
-    rt_only = [a for a in ads if "retargeting only" in a["tags"]]
-    if rt_only:
-        a = max(rt_only, key=lambda x: x["spend"])
-        out.append({
-            "q":  (f"Is {short(a['ad_name'], 44)} still useful as a "
-                   f"retargeting ad, or should we cap its budget?"),
-            "why": (f"New-customer share is below 10% — this ad is "
-                    f"running mostly on existing customers this week. "
-                    f"Capping budget and shifting it to "
-                    f"acquisition-focused creatives may improve blended "
-                    f"new-customer ROAS."),
-        })
+    # Ad with the lowest new-customer share (mostly existing customers).
+    nc_ads = [a for a in ads
+              if a.get("nc") is not None and (a.get("purchases") or 0) > 0]
+    if nc_ads:
+        a = min(nc_ads, key=lambda x: x["nc"] / x["purchases"])
+        nc_share = a["nc"] / a["purchases"]
+        if nc_share < 0.10:
+            out.append({
+                "q":  (f"How much of {short(a['ad_name'], 44)}'s volume is "
+                       f"new versus returning customers?"),
+                "why": (f"New customers were {fmt_pct(nc_share * 100, 0)} of "
+                        f"this ad's {int(a['purchases'])} purchases this week "
+                        f"({int(a['nc'])} new). You can compare its "
+                        f"new-customer share against your other ads."),
+            })
 
     return out[:3]

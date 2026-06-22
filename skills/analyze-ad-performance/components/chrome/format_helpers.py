@@ -93,24 +93,14 @@ def text(text) -> str:
 
 
 def roas_class(roas) -> str:
-    if roas is None:
-        return ""
-    r = safe_float(roas)
-    if r >= 2.5:
-        return "good"
-    if r >= 1.5:
-        return "ok"
-    if r > 0:
-        return "bad"
+    # Neutral by design: we present the measured number only and never
+    # colour-code it good/bad, so this returns no semantic class. Kept as a
+    # function so callers don't need to change.
     return ""
 
 
 def freq_class(freq) -> str:
-    f = safe_float(freq)
-    if f >= 4.0:
-        return "bad"
-    if f >= 3.0:
-        return "ok"
+    # Neutral by design — see roas_class. No good/ok/bad colour-coding.
     return ""
 
 

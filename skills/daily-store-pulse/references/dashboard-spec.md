@@ -8,19 +8,20 @@ run** — only when modifying a component or adding a section.
 The shipped layout is `components/chrome/shell.html`.
 
 1. **Portfolio header** (dark navy panel). Brand wordmark, "yesterday" date
-   pill, eyebrow, an H1 headline summarising how many stores need attention,
-   the portfolio verdict sentence, and a row of chips naming the flagged
-   stores (pink dot = Act now, yellow dot = Watch). Built in
-   `insights/verdict.py:build_portfolio`.
+   pill, eyebrow, an H1 headline counting how many stores have a flagged
+   anomaly today, a factual summary sentence naming those stores, and a row of
+   chips naming them (pink dot = a high-severity anomaly fired, yellow dot = a
+   medium-severity item). Built in `orchestrators/assemble.py:_build_portfolio`.
+   The dot colours are severity tokens only — no verdict text is shown.
 2. **Store filter** (sticky light bar). An "All stores" chip plus one chip per
-   store, each with a verdict-coloured dot. Clicking shows/hides cards
+   store, each with a severity-coloured dot. Clicking shows/hides cards
    client-side via `components/chrome/store_filter.js`; the choice persists to
    `localStorage` under a key scoped to the artifact id. "All stores" is the
    default. The filter never re-fetches — all data is baked in.
 3. **One pulse card per store** (`components/views/pulse_card.html`,
    `data-store="<id>"`). Each card, top to bottom:
-   - **Head** — store name + meta line; verdict pill (On track / Watch / Act
-     now) and a one-sentence why. Verdict logic: `insights/verdict.py:build_store`.
+   - **Head** — store name + meta line. No verdict pill — the KPI tiles and
+     the needs-attention list carry the card.
    - **KPI tiles** — revenue, orders, MER, ROAS, PoAS, CAC. Each shows
      yesterday's value, the trailing-7-day baseline, and a delta painted by
      whether the move is *good* (CAC inverts — a drop is good). `transforms/kpis.py`.
@@ -59,19 +60,20 @@ The shipped layout is `components/chrome/shell.html`.
 Every window start is clamped to the store's onboarding date upstream (in the
 skill workflow), never in the renderer.
 
-## Verdict thresholds
+## Portfolio flag level
 
-In `insights/verdict.py`. Deliberately conservative about red — daily numbers
-are noisy:
+The portfolio header and the store-chip dots are driven by the anomaly
+monitor's own severity, not a TrackBee verdict. In
+`insights/attention.py` each item is bucketed high / medium / low from the
+anomaly z-score (or a spend-efficiency Meta flag). The orchestrator then
+sets a per-store `flag_level`:
 
-- **Act now** — a high-severity anomaly, or revenue ≤ −35% vs a normal day, or
-  MER/ROAS ≤ −30%.
-- **Watch** — a medium anomaly, or revenue/MER/ROAS ≤ −12%, or CAC ≥ +20%, or
-  any open recommendation, or no data yet for the day.
-- **On track** — everything else.
+- **high** — at least one high-severity anomaly fired (pink dot).
+- **medium** — at least one medium-severity anomaly or spend-efficiency flag (yellow dot).
+- **none** — nothing flagged (green dot).
 
-The portfolio header rolls these up: Act now stores lead, then Watch, then the
-"on track" remainder.
+`_build_portfolio` counts how many stores are high/medium and names them.
+No store is labelled with a verdict.
 
 ## Brand tokens
 
@@ -79,11 +81,12 @@ All v3 tokens in `components/chrome/theme.css`. The important ones:
 
 - `--navy #0D1245` — header panel, body text on light, KPI values.
 - `--lavender #F0F2FF` — hover/secondary accents.
-- `--pink #FF1F6B` — Act-now dot, sparkline end point (display only; ink
+- `--pink #FF1F6B` — high-severity dot, sparkline end point (display only; ink
   `#C8124B` for any pink text).
-- `--yellow #FFCC00` — accent on dark only (date pill, "Act now:" emphasis).
+- `--yellow #FFCC00` — accent on dark only (date pill, emphasis).
 - `--sky #3D9EFF` — the ad-spend pacing bar.
-- Verdict tints: `--ok-bg / --watch-bg / --act-bg` and matching borders.
+- Severity dot tints: `--ok-bg / --watch-bg / --act-bg` and matching borders
+  (colour tokens only — green / yellow / pink — no verdict text).
 - Semantic: `--success` (good deltas), `--error` (bad deltas), `--warning`.
 
 Deltas use `.delta-good` / `.delta-bad` / `.delta-flat` — the *class* carries

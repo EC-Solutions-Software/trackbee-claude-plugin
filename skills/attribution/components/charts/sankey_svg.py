@@ -14,10 +14,10 @@ _SVG_PLATFORM_COLORS = {
     "klaviyo": "#7C3AED",
     "tiktok": "#000000",
     "pinterest": "#E60023",
-    "email": "#696E7C",
+    "email": "#737373",
     "bing": "#0078D7",
-    "Order": "#040F24",
-    "ORDER": "#040F24",
+    "Order": "#0D1245",
+    "ORDER": "#0D1245",
 }
 
 
@@ -41,8 +41,8 @@ def render_sankey_svg(view):
     targets = view.get("target", [])
     values = view.get("value", [])
     if not labels or not sources:
-        return ('<div style="padding:24px;color:#696E7C;background:#FAFAFA;'
-                'border:1px solid #CCD1DF;border-radius:8px;font-size:13px;'
+        return ('<div style="padding:24px;color:#737373;background:#FAFAFA;'
+                'border:1px solid #E5E5E5;border-radius:8px;font-size:13px;'
                 'text-align:center">No journeys match this filter.</div>')
     parsed = [_parse_sankey_label(l) for l in labels]
     steps = [s for _, s in parsed if s is not None]
@@ -104,7 +104,7 @@ def render_sankey_svg(view):
         cx0 = x0 + (x1 - x0) * 0.5
         cx1 = x0 + (x1 - x0) * 0.5
         plat = parsed[s][0]
-        color = _SVG_PLATFORM_COLORS.get(plat, "#9aa0aa")
+        color = _SVG_PLATFORM_COLORS.get(plat, "#737373")
         tip = (
             f'<strong>{_html_mod.escape(labels[s])} → '
             f'{_html_mod.escape(labels[t])}</strong>{int(v):,} journeys'
@@ -124,7 +124,7 @@ def render_sankey_svg(view):
             continue
         x_pos, y0, y1 = node_pos[i]
         plat = parsed[i][0]
-        color = _SVG_PLATFORM_COLORS.get(plat, "#696E7C")
+        color = _SVG_PLATFORM_COLORS.get(plat, "#737373")
         h = max(1.0, y1 - y0)
         rect_tip = (
             f'<strong>{_html_mod.escape(labels[i])}</strong>'
@@ -141,8 +141,8 @@ def render_sankey_svg(view):
             anchor = "end" if last_col else "start"
             rects.append(
                 f'<text x="{lbl_x:.1f}" y="{(y0+y1)/2 + 4:.1f}" font-size="11" '
-                f'fill="#040F24" text-anchor="{anchor}" '
-                f'font-family="Inter, system-ui">'
+                f'fill="#0D1245" text-anchor="{anchor}" '
+                f'font-family="Plus Jakarta Sans, system-ui">'
                 f'{_html_mod.escape(labels[i])}</text>'
             )
 

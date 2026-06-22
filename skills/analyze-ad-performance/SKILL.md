@@ -4,10 +4,10 @@ description: >-
   Generate a TrackBee-branded Ad Performance Dashboard — a self-contained
   HTML report showing all active campaigns, ad sets, and ads across Meta and
   Google for every store the user has access to. Answers "how is my ad
-  account performing this week and how do I scale profitably?" Shows spend,
-  ROAS, impressions, reach, frequency, CPM, CTR, CPC, clicks, ATC, purchases,
-  revenue, new-customer metrics, and AI-generated scaling recommendations
-  per platform. Filterable by store, platform, campaign, ad set, and
+  account performing this week?" Shows spend, ROAS, impressions, reach,
+  frequency, CPM, CTR, CPC, clicks, ATC, purchases, revenue, and
+  new-customer metrics, plus per-platform key observations stating the
+  measured figures. Filterable by store, platform, campaign, ad set, and
   individual ad. Use this skill whenever someone asks about ad performance,
   wants to see their campaigns across platforms, asks how to scale
   profitably, mentions ROAS, Meta Ads, Google Ads, campaign data, ad spend,
@@ -127,16 +127,17 @@ those live in `.html`, `.css`, and `.js` files under `components/chrome/`.
         mcp__cowork__create_artifact with the SAME id
         "<store-slug>-ad-performance" and the new html_path.
         Same id = update, not duplicate.
-     4. Print one line to chat: blended ROAS, top scaling opportunity,
-        biggest risk, and the artifact link as computer://<absolute-path>.
+     4. Print one line to chat: blended ROAS, total spend, and the
+        highest- and lowest-ROAS campaigns by name, and the artifact
+        link as computer://<absolute-path>.
      ```
    Tell the user one line: "Live artifact created and a daily 8am
    refresh is scheduled." First run pre-approves the MCP tools the
    task needs, so subsequent runs go through without prompts.
 
 9. **Hand off.** Print a `computer://` link to the HTML plus a 2–3 sentence
-   summary: top scaling opportunity, biggest risk, blended ROAS for the
-   window.
+   summary stating the measured figures: blended ROAS, total spend, and the
+   highest- and lowest-ROAS campaigns for the window.
 
 ## Config template
 
@@ -192,11 +193,11 @@ components/
     google_rows.py            Google campaign + ad / asset-group rows
     table_meta.py             canonical column list + thead / cell helpers
     window.py                 date-pill formatter
-  insights/                   payload → list of HTML insight / rec strings
-    meta_insights.py          per-platform key insights + recommendations
+  insights/                   payload → list of HTML observation strings
+    meta_insights.py          per-platform key observations (measured figures)
     google_insights.py        same for Google
     next_questions.py         Q-card data + render
-    thresholds.py             centralised numeric thresholds (ROAS, freq, spend)
+    thresholds.py             numeric thresholds gating which figures surface
   orchestrators/
     assemble.py               loads each transform / insight / chrome file in sequence
                               and stamps the final HTML
@@ -215,7 +216,7 @@ formatting.
 - **Revenue** = `revenue_1d_click` for Meta (standard 1-day-click attribution window); `conversions_value` for Google.
 - **ROAS** = `purchase_roas` for Meta; `conversions_value / spend` for Google.
 - **Results** = `purchases` for Meta; `conversions` for Google.
-- **Numeric thresholds** (scale / pause / refresh decisions, frequency bands, etc.) live in `components/insights/thresholds.py`. Edit there; the row builders and insight rules read from it.
+- **Numeric thresholds** (which follow-up questions and key observations are material enough to surface, frequency bands, etc.) live in `components/insights/thresholds.py`. Edit there; the observation rules and question rules read from it. They gate *which figures are shown* — they never label a verdict or recommend an action.
 
 ## What's bundled
 

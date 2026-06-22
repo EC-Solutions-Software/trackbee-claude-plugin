@@ -12,7 +12,7 @@
 <body>
   <div class="wrap">
 
-    <!-- PORTFOLIO HEADER (dark navy panel — combined verdict + who needs attention) -->
+    <!-- PORTFOLIO HEADER (dark navy panel — store count + which stores flagged anomalies) -->
     <div class="hero">
       <div class="hero-row">
         <div class="hero-brand-wordmark">{BRAND_WORDMARK}</div>
@@ -20,7 +20,7 @@
       </div>
       <div class="eyebrow on-dark" style="margin-top:16px">Daily store pulse</div>
       <h1>{PORTFOLIO_HEADLINE}</h1>
-      <div class="portfolio-verdict">{PORTFOLIO_VERDICT}</div>
+      <div class="portfolio-verdict">{PORTFOLIO_SUMMARY}</div>
       {ATTENTION_STORES}
     </div>
 
@@ -37,7 +37,7 @@
     <footer class="page-footer">
       <span class="footer-wordmark">TrackBee daily store pulse</span><br>
       {STORE_COUNT_LABEL} · Yesterday: {YESTERDAY_LABEL} · Baseline: trailing 7-day average ({BASELINE_LABEL}) · Generated {GENERATED_DATE}<br>
-      <span style="font-size:11px">
+      <span style="font-size:12px">
         Data from TrackBee Insights, baked in at build time and refreshed daily at 08:00 by the scheduled task. Yesterday's figures compare against the trailing 7-day daily average. <code>checkout_started</code> is tracked client-side only, so funnel counts can understate true checkout starts. Profit and PoAS use your store's cost-of-goods settings; orders missing per-variant cost fall back to the store-level COGS percentage.
       </span>
     </footer>
