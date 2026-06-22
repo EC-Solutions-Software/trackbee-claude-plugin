@@ -114,11 +114,9 @@ the user gets every piece of data we actually have.
    - `notifyOnCompletion`: `false`
    - `prompt`: a self-contained instruction that captures everything
      the task needs to do without access to this conversation. Use
-     this template (substitute the placeholders) — and include the
-     `impersonate=<USER_ID>` lines only if this run impersonated a user
-     (internal/admin runs); for a normal customer authed to their own
-     store, omit both impersonate lines so the daily refresh runs under
-     the user's own access:
+     this template (substitute the placeholders). The scheduled task runs
+     under the user's own authenticated access, so it already scopes to
+     their store — no extra parameters are needed:
 
      ```
      Refresh the TrackBee Creatives Report for <Store Name>
@@ -128,8 +126,6 @@ the user gets every piece of data we actually have.
      CONTEXT
      - Store: <Store Name>, store_id = <STORE_ID>,
        store_currency = <CCY>.
-     - Pass impersonate=<USER_ID> on every TrackBee MCP call (this
-       is the user the original run used).
      - Ad-account FX: <FX_DICT> (e.g. {"GBP": 1.0, "EUR": 1.17}).
      - Workspace folder: <WORKSPACE_PATH>
      - Entry script: $CLAUDE_PLUGIN_ROOT/.claude/skills/creatives-report/scripts/build_dashboard.py
@@ -143,7 +139,7 @@ the user gets every piece of data we actually have.
 
      PLAN
      1. Invoke the /creatives-report skill against store <STORE_ID>
-        using the window above. Use impersonate=<USER_ID>.
+        using the window above.
      2. Build the report HTML at
         <WORKSPACE_PATH>/<store-slug>-creatives-report-<YYYY-MM-DD>.html
         (yesterday's date).
