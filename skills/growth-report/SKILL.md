@@ -109,11 +109,9 @@ user gets every piece of data we actually have.
    - `notifyOnCompletion`: `false`
    - `prompt`: a self-contained instruction that captures everything the
      task needs to do without access to this conversation. Use this
-     template (substitute the placeholders) — and include the
-     `impersonate=<USER_ID>` lines only if this run impersonated a user
-     (internal/admin runs); for a normal customer authed to their own
-     store, omit both impersonate lines so the daily refresh runs under
-     the user's own access:
+     template (substitute the placeholders). The scheduled task runs under
+     the user's own authenticated access, so it already scopes to their
+     store — no extra parameters are needed:
 
      ```
      Refresh the TrackBee Growth Report for <Store Name>
@@ -123,8 +121,6 @@ user gets every piece of data we actually have.
      CONTEXT
      - Store: <Store Name>, store_id = <STORE_ID>,
        store_currency = <CCY>.
-     - Pass impersonate=<USER_ID> on every TrackBee Insights call (this is
-       the user the original run used).
      - Workspace folder: <WORKSPACE_PATH>
      - Entry script:
        $CLAUDE_PLUGIN_ROOT/.claude/skills/growth-report/scripts/build_report.py
@@ -140,7 +136,7 @@ user gets every piece of data we actually have.
 
      PLAN
      1. Invoke the /growth-report skill against store <STORE_ID>
-        using those windows. Use impersonate=<USER_ID>.
+        using those windows.
      2. Build the report HTML at
         <WORKSPACE_PATH>/<store-slug>-growth-report-<YYYY-MM-DD>.html
         (yesterday's date).

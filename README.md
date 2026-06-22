@@ -6,6 +6,7 @@ TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name
 
 - `/get-started` — onboarding entry point: pick a store and route to the right skill.
 - `/discover-insights` — surface what TrackBee Insights can answer and route to the right skill.
+- `/check-tracking-setup` — check which ad and analytics platforms are connected for a store and whether each connection is set up correctly.
 - `/analyze-ad-performance` — build the Ad Performance Dashboard: Meta + Google campaigns with a KPI bar, a sortable per-campaign / per-ad table (spend, ROAS, frequency, reach, CTR, CPC and more), and per-platform key observations, packaged as one Live Artifact.
 - `/attribution` — build the Attribution Overview: Executive Summary, Blended Overview, Platform Overview, Channel Attribution, Customer Journeys, a Store Funnel Analysis, and a "Where to go next" prompt dock, packaged as one self-contained Live Artifact.
 - `/creatives-report` — build the Creatives Report Dashboard: present each spending ad's last-7-day statistics (spend, ROAS, frequency, reach, net-new-reach share, purchases, new-customer share, 1d/28d), grouped by product and format, packaged as one self-contained Live Artifact.
@@ -15,8 +16,10 @@ TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name
 - `/diagnose-audience-health` — investigate frequency, reach saturation, and audience overlap across ad sets.
 - `/find-undervalued-ads` — surface high-performing creatives with low spend that deserve more budget.
 - `/scale-ads-profitably` — identify which ads to scale and at what cadence, based on ROAS, spend headroom, and audience saturation.
+- `/audit-creatives` — audit ad creatives: detect fatigue, compare content types, measure creative lifetime, and propose what to create next.
 - `/discuss-artifact` — answer follow-up questions about a Live Artifact already open in the conversation.
 - `/get-help-faq` — troubleshooting and FAQ for common questions and stuck states.
+- `/product-feedback` — share what's missing or could be improved in TrackBee Insights (also surfaces on its own after a few questions).
 
 Skills that render a Live Artifact (`analyze-ad-performance`, `attribution`, `creatives-report`, `daily-store-pulse`, `growth-report`) ship their build pipeline here. Every other skill is a minimal `SKILL.md` that delegates to the TrackBee Insights MCP at invocation time.
 
