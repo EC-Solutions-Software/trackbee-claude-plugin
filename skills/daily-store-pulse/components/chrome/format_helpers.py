@@ -109,12 +109,8 @@ def signed_pct(value, digits=1):
 
 
 def delta_class(pct, *, lower_is_better=False, flat_band=2.0):
-    """Map a percent change to a semantic CSS class. ``lower_is_better`` flips
-    the meaning for cost metrics (CAC, CPC) where a drop is good. Moves inside
-    ``flat_band`` percent read as flat — daily noise shouldn't paint red/green."""
-    if pct is None:
-        return "delta-flat"
-    if abs(pct) < flat_band:
-        return "delta-flat"
-    improving = (pct < 0) if lower_is_better else (pct > 0)
-    return "delta-good" if improving else "delta-bad"
+    """Map a percent change to a CSS class. The class is purely neutral —
+    we never encode good/bad. The +/- sign in the delta string already
+    carries direction. ``lower_is_better`` and ``flat_band`` are kept for
+    call-site compatibility but no longer change the colour semantics."""
+    return "delta-flat"

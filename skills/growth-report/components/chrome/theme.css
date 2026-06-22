@@ -16,25 +16,30 @@
   --honey-ink:   #7A5C00;
   --blue-ink:    #0066CC;
 
-  /* Honeycomb base */
-  --bg:          #FFFFFF;
-  --card:        #FAFAFA;
-  --muted-bg:    #F5F5F5;
-  --border:      #E5E5E5;
-  --fg:          #0D1245;
-  --fg-muted:    #737373;
+  /* Surfaces + lines */
+  --bg:       #FAFAFA;   /* page */
+  --card:     #FFFFFF;   /* card surface */
+  --inset:    #FAFAFA;   /* nested tile on a card */
+  --muted-bg: #F5F5F5;   /* subdued fills, chips */
+  --border:   #E5E5E5;
+
+  /* Text */
+  --fg:            #0D1245;
+  --fg-muted:      #737373;
+  --on-dark-muted: #E2E8F8;   /* lavender-tinted white, 14:1 on navy */
 
   /* Semantic */
-  --success:     #027A48;
-  --warning:     #B54708;
-  --error:       #B42318;
-  --info:        #0066CC;
+  --success: #027A48; --success-bg: #E6F4EE;
+  --warning: #B54708; --warning-bg: #FDF3E7;
+  --error:   #B42318; --error-bg:   #FDECEA;
+  --info:    #0066CC; --info-bg:    #E5F0FB;
 
-  /* On-dark muted (lavender-tinted white) */
-  --on-dark-muted: #E2E8F8;
+  /* Honeycomb radii */
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 10px;
+  --radius-xl: 12px; --radius-4xl: 32px; --radius-full: 9999px;
 
-  /* Type — brand-site stack */
-  --font-display: 'Lexend','Inter Tight','Inter',system-ui,sans-serif;
+  /* Type — brand stack */
+  --font-display: 'Lexend','Inter Tight',system-ui,sans-serif;
   --font-body:    'Plus Jakarta Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --font-mono:    'JetBrains Mono','SFMono-Regular',ui-monospace,Menlo,monospace;
 }
@@ -124,21 +129,21 @@ p:last-child { margin-bottom: 0; }
 
 /* ----- Cards (light) ----- */
 .card {
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
 }
 .card.inset {
-  background: var(--card);
-  border-radius: 8px;
+  background: var(--inset);
+  border-radius: var(--radius-md);
 }
 
 /* ----- Hero (dark navy panel) ----- */
 .hero {
-  background: var(--navy);
+  background: linear-gradient(180deg, var(--navy) 0%, #0A0E36 100%);
   color: #FFFFFF;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 28px 28px 26px;
   display: flex;
   flex-direction: column;
@@ -171,14 +176,20 @@ p:last-child { margin-bottom: 0; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  background: rgba(255,204,0,0.18);
-  color: var(--yellow);
-  font-family: var(--font-mono);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--yellow);
+  color: var(--navy);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.hero-window-pill::before {
+  content: ""; display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--navy);
 }
 
 /* ----- Headline KPI tiles ----- */
@@ -188,14 +199,14 @@ p:last-child { margin-bottom: 0; }
   gap: 12px;
 }
 .kpi {
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 14px 16px;
 }
 .kpi-label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--fg-muted);
   letter-spacing: 0.06em;
@@ -225,7 +236,7 @@ p:last-child { margin-bottom: 0; }
 .answer-card {
   background: linear-gradient(180deg, var(--navy) 0%, #0A0E36 100%);
   color: #FFFFFF;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--navy);
   padding: 28px 32px;
 }
@@ -253,7 +264,7 @@ p:last-child { margin-bottom: 0; }
   .split { grid-template-columns: 1fr; }
 }
 .split-col {
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
   border: 1px solid var(--border);
 }
@@ -282,9 +293,9 @@ p:last-child { margin-bottom: 0; }
   gap: 14px;
 }
 .split-col li {
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   font-size: 14px;
   line-height: 1.55;
@@ -296,15 +307,15 @@ p:last-child { margin-bottom: 0; }
 }
 .split-col li .why {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--fg-muted);
 }
 
 /* ----- Priority actions ----- */
 .actions {
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
 }
 .actions ol {
@@ -335,7 +346,7 @@ p:last-child { margin-bottom: 0; }
   color: var(--yellow);
   width: 24px;
   height: 24px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -343,9 +354,9 @@ p:last-child { margin-bottom: 0; }
 
 /* ----- Metric framework table ----- */
 .table-wrap {
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
   overflow-x: auto;
 }
@@ -355,21 +366,21 @@ p:last-child { margin-bottom: 0; }
   gap: 6px;
   margin-bottom: 14px;
   padding: 6px;
-  background: var(--card);
+  background: var(--inset);
   border: 1px solid var(--border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   width: fit-content;
 }
 .table-controls button {
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   padding: 6px 14px;
   border: none;
   background: transparent;
   color: var(--fg);
   cursor: pointer;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   transition: background .12s, color .12s;
 }
 .table-controls button.active {
@@ -383,7 +394,7 @@ p:last-child { margin-bottom: 0; }
 table.metrics {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 table.metrics th,
@@ -396,9 +407,9 @@ table.metrics td {
 table.metrics th {
   font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--fg-muted);
-  background: var(--card);
+  background: var(--inset);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   border-bottom: 1px solid var(--border);
@@ -406,7 +417,7 @@ table.metrics th {
   top: 0;
 }
 table.metrics tr:last-child td { border-bottom: none; }
-table.metrics tr:hover td { background: var(--card); }
+table.metrics tr:hover td { background: var(--inset); }
 table.metrics .metric-name {
   font-weight: 600;
   color: var(--navy);
@@ -419,12 +430,12 @@ table.metrics .metric-indicates {
 table.metrics .num { text-align: right; font-variant-numeric: tabular-nums; }
 table.metrics .source-text {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--fg-muted);
   line-height: 1.5;
 }
 table.metrics .interp {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--fg);
   max-width: 360px;
@@ -435,25 +446,25 @@ table.metrics .interp {
   display: inline-flex;
   align-items: center;
   padding: 2px 10px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.avail.yes     { background: #DCFCE7; color: var(--success); }
-.avail.partial { background: #FEF3C7; color: var(--warning); }
-.avail.no      { background: #FEE2E2; color: var(--error); }
+.avail.yes     { background: var(--success-bg); color: var(--success); }
+.avail.partial { background: var(--warning-bg); color: var(--warning); }
+.avail.no      { background: var(--error-bg); color: var(--error); }
 
 /* ----- Importance pills ----- */
 .imp {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -464,18 +475,18 @@ table.metrics .interp {
 /* ----- Data unavailable notice ----- */
 .data-unavailable {
   padding: 16px 20px;
-  background: #FFF8E1;
+  background: var(--warning-bg);
   border: 1px solid #F2D88A;
-  border-radius: 8px;
-  color: #574116;
-  font-size: 13px;
+  border-radius: var(--radius-md);
+  color: var(--warning);
+  font-size: 14px;
   line-height: 1.5;
 }
 .data-unavailable strong {
   display: block;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   margin-bottom: 4px;
 }
 
@@ -489,7 +500,7 @@ table.metrics .interp {
 }
 .page-footer .footer-wordmark {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--fg-muted);
@@ -526,26 +537,6 @@ table.metrics .interp {
   font-weight: 500;
 }
 
-/* ----- Signal pills (positive / negative / neutral) for the metrics table ----- */
-.signal {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border: 1px solid transparent;
-}
-.signal.positive { background: #DCFCE7; color: var(--success); border-color: #BBF7D0; }
-.signal.negative { background: #FEE2E2; color: var(--error);   border-color: #FECACA; }
-.signal.neutral  { background: var(--card); color: var(--fg-muted); border-color: var(--border); }
-
-table.metrics tr[data-signal="positive"] td:first-child { border-left: 3px solid var(--success); }
-table.metrics tr[data-signal="negative"] td:first-child { border-left: 3px solid var(--error); }
-
 /* Lead-answer paragraph: sits directly under the H1 in the hero, acting as the
    lead answer. Slightly larger than body, same colour as the answer-body
    muted-on-dark text, sentence case. */
@@ -577,16 +568,16 @@ table.metrics tr[data-signal="negative"] td:first-child { border-left: 3px solid
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 .actions .action-detail li {
   /* Override the numbered counter / grid layout from the parent .actions li */
   display: block;
   counter-increment: none;
-  background: var(--card);
+  background: var(--inset);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 6px 10px;
   color: var(--fg);
   font-family: var(--font-mono);
@@ -609,9 +600,9 @@ table.metrics tr[data-signal="negative"] td:first-child { border-left: 3px solid
   font-size: 12px;
   line-height: 1.5;
   color: var(--warning);
-  background: #FFF6E5;
+  background: var(--warning-bg);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
   margin: 10px 0;
 }

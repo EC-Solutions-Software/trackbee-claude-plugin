@@ -49,36 +49,38 @@ def _load_b64(txt_name: str, png_name: str) -> str:
     return ""
 
 
-# Bee mark + wordmark, base64 at import so the report is self-contained.
-TB_ICON_B64     = _load_b64("tb_icon_b64.txt", "trackbee-icon.png")
-TB_WORDMARK_B64 = _load_b64("tb_wordmark_b64.txt", "trackbee-wordmark.png")
+# Wordmark (dark variant for the navy header), base64 at import so the
+# report is self-contained. The wordmark lockup already contains the bee
+# mark — never pair it with a second standalone bee.
+TB_WORDMARK_DARK_B64 = _load_b64("tb_wordmark_dark_b64.txt", "trackbee-wordmark-dark.png")
+TB_WORDMARK_B64      = _load_b64("tb_wordmark_b64.txt", "trackbee-wordmark.png")
 
 
 def header_logo_html() -> str:
     """Render the brand lockup for the report header.
 
-    Renders the horizontal lockup in dark variant (bee mark + wordmark
-    on a navy surface). Falls back gracefully to whatever asset is
-    available — never throws.
+    Serves the dark-variant wordmark (the header is a navy surface, per
+    the brand variant decision tree). Falls back to the light wordmark
+    inverted via CSS, then to a typeset fallback — never throws.
     """
-    icon_html = (
-        f'<img src="data:image/png;base64,{TB_ICON_B64}" '
-        f'alt="" class="tb-icon" aria-hidden="true">'
-        if TB_ICON_B64 else ""
-    )
-    if TB_WORDMARK_B64:
+    if TB_WORDMARK_DARK_B64:
+        wordmark_html = (
+            f'<img src="data:image/png;base64,{TB_WORDMARK_DARK_B64}" '
+            f'alt="TrackBee" class="tb-wordmark-dark">'
+        )
+    elif TB_WORDMARK_B64:
         wordmark_html = (
             f'<img src="data:image/png;base64,{TB_WORDMARK_B64}" '
             f'alt="TrackBee" class="tb-wordmark">'
         )
     else:
-        # Fallback — typeset the wordmark in the loaded body font so
-        # the brand block still reads as "TrackBee" if the PNG didn't
+        # Fallback — typeset the wordmark in the loaded display font so
+        # the brand block still reads as "TrackBee" if the PNGs didn't
         # ship with the plugin.
         wordmark_html = '<span class="tb-wordmark-text">TrackBee</span>'
     return (
         f'<a class="brand-lockup" href="#" aria-label="TrackBee">'
-        f'  {icon_html}{wordmark_html}'
+        f'  {wordmark_html}'
         f'</a>'
     )
 

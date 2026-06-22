@@ -38,22 +38,17 @@
       </div>
     </div>
 
-    <!-- NEXT STEPS -->
-    <div class="actions">
-      <div class="eyebrow" style="margin-bottom:10px">Next steps</div>
-      <ol>{ACTIONS_LIST}</ol>
-    </div>
     {EXCLUSION_NOTE}
 
     <!-- METRIC FRAMEWORK TABLE -->
     <div class="table-wrap">
       <div class="eyebrow" style="margin-bottom:10px">Metric framework</div>
       <h2>The growth checklist</h2>
-      <p class="muted" style="margin-bottom:14px">Every metric the TrackBee Insights exposes for this store, scored against the current and prior 7-day windows. Use the filter to focus on the metrics that are showing good or bad signs.</p>
+      <p class="muted" style="margin-bottom:14px">Every metric the TrackBee Insights exposes for this store, with its current and prior 7-day values and the week-over-week change. Use the filter to focus on metrics that moved up or down this window.</p>
       <div class="table-controls" id="metricFilter" role="tablist">
         <button data-f="all" class="active">All</button>
-        <button data-f="positive">Positive signals</button>
-        <button data-f="negative">Negative signals</button>
+        <button data-f="up">Moved up</button>
+        <button data-f="down">Moved down</button>
       </div>
       <table class="metrics">
         <thead>
@@ -74,7 +69,7 @@
     <footer class="page-footer">
       <span class="footer-wordmark">TrackBee growth report</span><br>
       Store: {STORE_NAME} ({STORE_ID}) · Current window: {CURRENT_LABEL} · Prior window: {PRIOR_LABEL} · Generated {GENERATED_DATE}<br>
-      <span style="font-size:11px">
+      <span style="font-size:12px">
         Data from the TrackBee Insights. <code>checkout_started</code> is tracked client-side only; counts may understate true checkout starts. Gross margin, contribution profit, and product-mix economics aren't shown because they require Shopify product cost sync to be enabled.
       </span>
     </footer>

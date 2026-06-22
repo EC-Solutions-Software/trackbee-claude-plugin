@@ -1,54 +1,37 @@
 """Store-funnel insights for the Attribution Overview report.
 
-One observation/action pair per leaking stage, tuned to that step's UX
-levers, ordered worst-first (with a secondary leak and an optional
-browse-stage callout). Pure string formatting over the ``_ctx`` block.
-Self-contained — stdlib only.
+One factual observation per leaking stage — the step's conversion rate and
+the count of shoppers lost at that step — ordered worst-first (with a
+secondary leak and an optional browse-stage callout). Pure string formatting
+over the ``_ctx`` block. Self-contained — stdlib only.
+
+Observations only; no recommended fix is attached. The checkout step keeps
+the factual tracking caveat (checkout_started is client-side).
 """
 
 
 def _funnel_insight(drop):
-    """Generate `{obs, act}` for a given drop based on its stage."""
+    """Generate `{obs}` for a given drop based on its stage — rate + lost count."""
     rate_pct = (drop["rate"] or 0) * 100
     lost_n = drop["lost"]
     to_step = drop["to_step"]
 
     if to_step == "total_product_view_events":
-        obs = (f"Only <strong>{rate_pct:.1f}%</strong> of sessions reach a product page — "
+        obs = (f"<strong>{rate_pct:.1f}%</strong> of sessions reach a product page — "
                f"<strong>{lost_n:,}</strong> visitors left before opening a single SKU.")
-        act = ("Tighten the path from landing to product: feature your best sellers on the homepage, "
-               "shorten collection navigation to one or two clicks, surface bestseller and review "
-               "badges on category thumbnails, and confirm collection pages load fast on mobile.")
     elif to_step == "total_add_to_cart_events":
-        if rate_pct >= 20:
-            obs = (f"<strong>{rate_pct:.1f}%</strong> of product views convert to add-to-cart — "
-                   f"strong product-page performance.")
-            act = ("Keep the formula intact. Test small wins like variant pickers, lifestyle imagery, "
-                   "or bundle suggestions, but don't redesign what is already working.")
-        else:
-            obs = (f"Only <strong>{rate_pct:.1f}%</strong> of product views become add-to-carts — "
-                   f"<strong>{lost_n:,}</strong> shoppers viewed a product and left without adding it.")
-            act = ("Audit the product detail page for buying-intent blockers: add lifestyle images and "
-                   "video, surface reviews and trust badges above the fold, clarify shipping and "
-                   "return policy near the buy button, and test a sticky add-to-cart on mobile.")
+        obs = (f"<strong>{rate_pct:.1f}%</strong> of product views become add-to-carts — "
+               f"<strong>{lost_n:,}</strong> shoppers viewed a product and did not add it.")
     elif to_step == "total_checkout_started_events":
-        obs = (f"Only <strong>{rate_pct:.1f}%</strong> of add-to-cart events start checkout — "
-               f"<strong>{lost_n:,}</strong> filled carts but never opened the checkout. "
-               f"This is the dashboard's biggest single revenue leak.")
-        act = ("Reduce cart-to-checkout friction: show shipping cost in the cart drawer (no surprises "
-               "on the checkout page), make 'guest checkout' the default, add Shop Pay / Apple Pay / "
-               "Klarna express buttons in the cart, and trigger an abandoned-cart email within an hour. "
-               "Note: TrackBee tracks checkout_started client-side, so the true rate is likely higher.")
+        obs = (f"<strong>{rate_pct:.1f}%</strong> of add-to-cart events start checkout — "
+               f"<strong>{lost_n:,}</strong> filled carts but did not open the checkout. "
+               f"Note: TrackBee tracks checkout_started client-side, so the true rate is likely higher.")
     elif to_step == "total_orders":
-        obs = (f"<strong>{rate_pct:.1f}%</strong> of checkout starts complete an order. "
-               f"<strong>{lost_n:,}</strong> shoppers entered checkout and abandoned before paying.")
-        act = ("Investigate payment friction: confirm Apple Pay / Google Pay / Klarna / iDEAL are live, "
-               "test the checkout on slow mobile networks, watch for input-validation errors on the "
-               "phone and postcode fields, and verify that discount codes apply without a page reload.")
+        obs = (f"<strong>{rate_pct:.1f}%</strong> of checkout starts complete an order — "
+               f"<strong>{lost_n:,}</strong> shoppers entered checkout and did not pay.")
     else:
         obs = f"<strong>{rate_pct:.1f}%</strong> conversion from the previous stage."
-        act = "Investigate this transition for friction points specific to your store's UX."
-    return {"obs": obs, "act": act}
+    return {"obs": obs, "act": ""}
 
 
 def build(ctx, fmt=None):

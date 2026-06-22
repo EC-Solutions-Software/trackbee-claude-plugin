@@ -6,24 +6,21 @@ reference.
 
 ## 0. Scope
 
-The audit covers the **last 7 days only**. This is a pure snapshot:
+The report covers the **last 7 days only**. This is a pure snapshot:
 no week-over-week comparison, no longer-term baseline — a deliberate
 design choice. If a longer historical view is needed later, that's a
 separate report — not a knob to flip inside this one.
 
-Because there's no baseline, fatigue scoring uses **absolute
-thresholds** for everything (frequency, ROAS, NNR share). Decay-vs-
-baseline signals (CTR dropped 30% in the last 7d vs the prior 7d,
-etc.) are intentionally out of scope.
+The report presents **measured statistics only**. It does not score,
+rank, or label ads, and it never recommends an action — readers
+interpret the figures themselves.
 
-## 1. Fatigue scoring
+## 1. Per-ad metric columns
 
-Each ad gets one of four tags. See ``fatigue_scoring.py`` for the
-canonical decision tree.
+The per-ad table shows, for each spending ad over the window, the
+figures below. No status tag or action column is rendered.
 
-### Inputs per ad
-
-| Signal              | Field (Meta)              | Field (Google)            |
+| Column              | Field (Meta)              | Field (Google)            |
 |---------------------|---------------------------|---------------------------|
 | Spend               | `spend`                   | `spend`                   |
 | Revenue             | `revenue_1d_click`        | `conversions_value`       |
@@ -31,53 +28,14 @@ canonical decision tree.
 | Frequency           | `frequency`               | — (no analogue)           |
 | CTR                 | `ctr`                     | `ctr * 100`               |
 | CPA                 | `spend / purchases`       | `spend / conversions`     |
-| Net new reach       | `net_new_reach`           | —                         |
 | NNR share           | `net_new_reach / reach`   | —                         |
-| New-customer share  | `new_customer_purchases / purchases` | `new_customer_conversions / conversions` |
+| New customers       | `new_customer_purchases`  | `new_customer_conversions`|
+| Status              | platform `effective_status` (Active / Paused) — platform-native |
 | First active        | `first_active_date` / `created_time` | `start_date` |
 
-### Decision tree
-
-```
-if spend < MIN_SCORED_SPEND (50, store currency):
-    HOLD, note = "insufficient spend to score in this 7-day window"
-
-elif roas < 1.0 and spend > 150:
-    KILL — below break-even at meaningful spend
-    (no ROAS floor: a zero-ROAS ad that spent real money is the textbook
-     KILL; the spend gate alone keeps under-tested ads out)
-
-elif frequency >= 3.5:
-    REFRESH — audience saturated
-
-elif reach > 1000 and 0 <= nnr_share < 0.10:
-    REFRESH — net new reach collapsed, audience exhausted
-
-elif roas >= 1.8 and frequency < 2.5:        # frequency < 2.5 also covers Google's freq == 0
-    SCALE — increase budget 20-30%
-
-elif roas < 1.0:
-    HOLD (losing) — below break-even but spend hasn't reached the kill
-    threshold yet; let it run to a clearer read before cutting
-
-else:
-    HOLD — performing within normal range
-```
-
-### Secondary tags
-
-After the primary status is assigned the scorer applies up to two
-secondary chips:
-
-- **"retargeting only"** — `new_customer_purchases / purchases < 0.10`
-  while purchases is non-zero. The ad is converting almost entirely on
-  existing customers this week.
-
-- **"upper-funnel shift"** (Meta only) — when
-  `purchases_1d_click < 0.5 × purchases` AND
-  `purchases_28d_click >= 0.85 × purchases`. The ad still drives
-  conversions but they're landing outside the 1-day click window —
-  treat it more like a brand-builder than a direct response.
+Each value renders as the measured figure; a missing value renders as
+"—". The "Status" column is the platform's own delivery state, not a
+TrackBee verdict.
 
 ## 2. Lifetime measurement
 
@@ -121,51 +79,30 @@ script reports every row, regardless of sample size:
 - Median CPA
 - Total spend
 - Total purchases / conversions
-- Status mix (count of SCALE / HOLD / REFRESH / KILL)
 
 Rows with N < 3 get a small ``low sample`` chip next to the ad count
-— the figures are still shown but should be read as directional. The
-``winner`` highlight has a stricter requirement: both the leading row
-and the runner-up it is compared against must have N >= 3 (and the
-leader must beat the next row by >= 20% on median ROAS at meaningful
-spend) before the chip is applied. A win declared over a single-ad
-runner-up isn't a win — there's nothing solid to compare against.
+— the figures are still shown but should be read as directional. When
+the leading format's median ROAS is >= 20% above the next-best (both
+rows N >= 3, at meaningful spend), the row states the gap as numbers —
+e.g. the leader's median ROAS next to the runner-up's. This is a
+measured comparison only; no "winner" label or verdict is applied.
 
-## 4. Production recommendations
+## 4. Follow-up question cards
 
-The script generates up to 5 recommendations in this priority:
-
-1. **Replace** — the top 3 KILL-tagged ads by spend, with their
-   format, product, and current ROAS. "These have spent £X at Y×
-   ROAS this week — queue replacements first."
-
-2. **Double down** — the top 3 (product, format) combinations by
-   median ROAS where total spend >= £200 and at least 3 ads exist.
-   "Video for [Product A] is your strongest pairing this week — 3.2×
-   median ROAS across 7 ads. Make more."
-
-3. **Fill gaps** — for each product, list formats that perform well
-   for *other* products in the same account but are missing or
-   under-represented here. "You have no carousel ads for [Product B],
-   yet carousels deliver 2.8× ROAS for similar products in this
-   account. Test one."
-
-4. **Theme insights** — if SCALE-tagged ad names share keyword tokens
-   (e.g. "discount", "founder", "review"), surface that token: "Three
-   of your top four winners include 'review' in the ad name —
-   testimonials are over-indexing this week."
-
-5. **Stop the bleed** — if any KILL-tagged ad represents >= 15% of
-   account spend this week, surface it specifically with the absolute
-   daily cost of continued under-performance.
+Below the data the report shows up to three neutral follow-up question
+cards (``next_questions.py``). Each states a measured figure for one ad
+— e.g. its ROAS, its frequency, or its new-customer share — and poses an
+open question the user can send back to the assistant. The cards do not
+prescribe an action or score the ad; they only point at a number worth a
+closer look.
 
 ## 5. Edge cases
 
 - **Single-platform accounts.** If only Meta or only Google is in
   scope, hide the absent-platform tab and skip platform-specific
   sections rather than rendering "no data" placeholders.
-- **PMAX asset groups.** Listed in the table with `format = "PMAX"`
-  but excluded from fatigue scoring (no per-asset spend).
+- **PMAX asset groups.** Listed in the table with `format = "PMAX"`;
+  they carry no per-asset spend, so spend-derived columns read "—".
 - **Very low spend.** If total ad-level spend across all stores is
   < £100 in the week, render a top-of-page warning that conclusions
   are unreliable.
@@ -182,7 +119,8 @@ The script generates up to 5 recommendations in this priority:
 - Don't try to back-fit week-over-week decay signals from a single
   7-day window. If the user wants decay analysis, that's a different
   report on a different window.
-- Don't recommend killing an ad before it hits the spend threshold
-  (default £150). Below that the noise dominates the signal.
+- Don't score, rank, or label ads, and don't recommend an action on
+  them. The report presents the measured figures; interpretation is
+  the reader's.
 - Don't fabricate trends. "This week" is the only frame of reference
-  the audit has — every claim should be scoped to it.
+  the report has — every claim should be scoped to it.

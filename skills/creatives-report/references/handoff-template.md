@@ -8,9 +8,9 @@ sentences** plus the artifact link — the dashboard does the talking.
 ```
 [<Store Name> creatives report](computer:///<abs-path-to-html>)
 
-<N_SCALE> ads tagged SCALE, <N_KILL> tagged KILL. The single biggest
-priority is <top-recommendation-headline>. Live artifact created and a
-daily 8am refresh is scheduled.
+<N_ADS> active ads this week on <TOTAL_SPEND> spend at <BLENDED_ROAS>× blended
+ROAS; median Meta frequency <FREQ>×. Live artifact created and a daily 8am
+refresh is scheduled.
 ```
 
 ## Example
@@ -18,15 +18,14 @@ daily 8am refresh is scheduled.
 ```
 [Acme Threads creatives report](computer://<workspace>/acme-threads-creatives-report-2026-05-14.html)
 
-3 ads tagged SCALE, 2 tagged KILL. The single biggest priority is
-replacing the £1,800 retargeting carousel with frequency 4.2× — it
-consumes 19% of account spend at 0.85× ROAS. Live artifact created and
-a daily 8am refresh is scheduled.
+47 active ads this week on £12,400 spend at 2.1× blended ROAS; median Meta
+frequency 2.6×. Live artifact created and a daily 8am refresh is scheduled.
 ```
 
 ## What NOT to print
 
-- Don't list every recommendation in chat — they're in the dashboard.
+- Don't score, rank, or recommend actions on ads — the dashboard
+  presents the figures and the reader interprets them.
 - Don't repeat the KPI tiles in prose — the user is about to open the
   dashboard.
 - Don't explain the methodology — the footer + dashboard-spec.md

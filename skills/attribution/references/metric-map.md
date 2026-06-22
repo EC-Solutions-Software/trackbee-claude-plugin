@@ -102,10 +102,10 @@ but TrackBee revenue are surfaced as "earned" contributors in the insights.
 | Orders | `total_orders` |
 
 Each stage keeps its raw count, `rate_from_previous`, and `rate_from_top`.
-The "biggest leak" is the lowest step-to-step rate, **excluding** the page
-view → product view drop by default (that is usually browsing behaviour, not
-a fixable UX leak — it is surfaced as a secondary callout only when below
-25%). Stage-specific fix-it insights live in
+The "lowest step rate" is the lowest step-to-step rate, **excluding** the page
+view → product view drop by default (that is usually browsing behaviour — it
+is surfaced as a secondary callout only when below 25%). Each stage's
+conversion rate and lost-shopper count are stated as factual observations in
 `components/insights/funnel.py`.
 
 ## Customer Journeys

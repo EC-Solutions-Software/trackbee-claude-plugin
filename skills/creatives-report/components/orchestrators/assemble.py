@@ -88,11 +88,6 @@ def _load_ads_by_camp(inputs_dir: Path, store_id, key_prefix: str) -> dict:
 
 
 # ── HTML helpers ────────────────────────────────────────────────────
-STATUS_ORDER = ["SCALE", "HOLD", "REFRESH", "KILL"]
-STATUS_COLOR = {"SCALE": "scale", "HOLD": "hold",
-                "REFRESH": "refresh", "KILL": "kill"}
-
-
 def _esc(text) -> str:
     return _html.escape(str(text or ""))
 
@@ -127,12 +122,11 @@ def _th(content: str, sort_key: str = "", tooltip: str = "") -> str:
 
 
 AD_HEADERS = [
-    ("Creative",    "name",     "Ad name + ad-set + tags"),
-    ("Status",      "status",   ""),
+    ("Creative",    "name",     "Ad name + ad-set"),
+    ("Status",      "status",   "Platform delivery status (Active / Paused)"),
     ("Platform",    "platform", ""),
     ("Format",      "format",   ""),
     ("Product",     "product",  "Inferred from ad-set / campaign tokens"),
-    ("Audit",       "audit",    "Fatigue tag — SCALE / HOLD / REFRESH / KILL"),
     ("Spend",       "spend",    "Total spend this week"),
     ("Revenue",     "revenue",  "Attributed revenue this week"),
     ("ROAS",        "roas",     "ROAS this week"),
@@ -155,30 +149,15 @@ def _status_badge(status: str) -> str:
     return f'<span class="badge other">{_esc(status or "—")}</span>'
 
 
-def _render_status_mix(counts) -> str:
-    parts = []
-    for s in STATUS_ORDER:
-        n = counts.get(s, 0)
-        if n > 0:
-            parts.append(f'<span class="mix-pill mix-{STATUS_COLOR[s]}">'
-                          f'{s[0]}{n}</span>')
-    return "".join(parts) if parts else "—"
-
-
 # ── Per-store rendering ─────────────────────────────────────────────
 def _render_ad_row(a: dict, sid, H) -> str:
     sym = a["sym"]
-    cls = f"ad-row status-{a['status_tag'].lower()}"
-    tags_html = "".join(
-        f'<span class="tag-chip">{_esc(t)}</span>' for t in a["tags"]
-    ) if a["tags"] else ""
     name_html = (
         f'<div class="ad-name">{_esc(H.short(a["ad_name"], 60))}</div>'
         f'<div class="ad-subline">'
         f'<span class="ad-adset">{_esc(H.short(a["adset_name"], 38))}</span>'
         f' · <span class="ad-camp">{_esc(H.short(a["campaign_name"], 38))}</span>'
         f'</div>'
-        + (f'<div class="ad-tags">{tags_html}</div>' if tags_html else "")
     )
     platform = a["platform"]
     plat_label = "Meta" if platform == "meta" else "Google"
@@ -187,19 +166,13 @@ def _render_ad_row(a: dict, sid, H) -> str:
     fmt_slug = re.sub(r"[^a-z]", "", a["format"].lower())
     fmt_html = f'<span class="fmt-chip fmt{fmt_slug}">{_esc(a["format"])}</span>'
 
-    action = (f'<span class="act-pill act-{STATUS_COLOR[a["status_tag"]]}">'
-              f'{a["status_tag"]}</span>'
-              f'<div class="reason" title="{_attr(a["reason"])}">'
-              f'{_esc(H.short(a["reason"], 60))}</div>')
-
-    # A genuine 0% (audience fully exhausted — the REFRESH trigger) must
-    # render as "0%", not "—". Only a missing value (Google, no reach data)
-    # collapses to "—".
+    # A genuine 0% (audience fully exhausted) renders as "0%", not "—". Only
+    # a missing value (Google, no reach data) collapses to "—".
     nnr_share_pct = (a["nnr_share"] * 100) if a["nnr_share"] is not None else None
 
     return (
-        f'<tr class="{cls}" data-store="{sid}" '
-        f'data-platform="{platform}" data-status="{a["status_tag"]}" '
+        f'<tr class="ad-row" data-store="{sid}" '
+        f'data-platform="{platform}" '
         f'data-format="{_attr(a["format"])}" '
         f'data-product="{_attr(a["product"])}" '
         f'data-name="{_attr((a["ad_name"] or "").lower())}">'
@@ -208,7 +181,6 @@ def _render_ad_row(a: dict, sid, H) -> str:
         + _td(plat_html)
         + _td(fmt_html)
         + _td(_esc(a["product"]))
-        + _td(action)
         + _td(H.fmt_money(a["spend"], sym), "num")
         + _td(H.fmt_money(a["revenue"], sym), "num")
         + _td(H.fmt_float(a["roas"], 2) if a["roas"] is not None else "—",
@@ -226,13 +198,9 @@ def _render_ad_row(a: dict, sid, H) -> str:
 
 
 def _render_kpi_bar(roll: dict, n_days: int, H) -> str:
-    """Five-tile store KPI bar. Markup lives in views/kpi_bar.html;
-    this just marshals the pre-formatted values into the placeholders."""
+    """Store KPI bar. Markup lives in views/kpi_bar.html; this just
+    marshals the pre-formatted values into the placeholders."""
     sym = roll["sym"]
-    sc = roll["status_counts"]
-    fatigued_n = sc.get("REFRESH", 0) + sc.get("KILL", 0)
-    fatigue_cls = ("bad" if fatigued_n >= max(roll["n_ads"] * 0.3, 3)
-                   else "")
     template = _read(VIEWS / "kpi_bar.html")
     return (
         template
@@ -243,10 +211,6 @@ def _render_kpi_bar(roll: dict, n_days: int, H) -> str:
         .replace("{BLENDED_ROAS}", H.fmt_float(roll["blended_roas"], 2))
         .replace("{TOTAL_PURCH}",  H.fmt_int(roll["total_purch"]))
         .replace("{TOTAL_REV}",    H.fmt_money(roll["total_rev"], sym))
-        .replace("{FATIGUE_CLASS}", fatigue_cls)
-        .replace("{FATIGUED_N}",   H.fmt_int(fatigued_n))
-        .replace("{REFRESH_N}",    H.fmt_int(sc.get("REFRESH", 0)))
-        .replace("{KILL_N}",       H.fmt_int(sc.get("KILL", 0)))
         # `is not None`: an all-zero-frequency store shows 0.0×, not "—".
         .replace("{FREQ_CLASS}",   H.freq_class(roll["avg_freq"]))
         .replace("{FREQ}",         H.fmt_float(roll["avg_freq"], 1) if roll["avg_freq"] is not None else "—")
@@ -266,31 +230,37 @@ def _render_grid(grid: dict, H, sym: str) -> str:
             continue
         body = []
         for r in rows:
-            winner_cls = "row-winner" if r.get("is_winner") else ""
-            winner_pill = (' <span class="winner-pill">winner</span>'
-                           if r.get("is_winner") else "")
+            # Lead comparison: when this format's median ROAS leads the
+            # next-best, state the gap as numbers — the measured figures
+            # only, with no label or verdict.
+            lead_note = ""
+            if r.get("lead_roas") is not None and r.get("next_roas") is not None:
+                lead_note = (
+                    ' <span class="lead-note">'
+                    f'{H.fmt_float(r["lead_roas"], 2)}× median ROAS vs '
+                    f'{H.fmt_float(r["next_roas"], 2)}× for '
+                    f'{_esc(r["next_format"])}'
+                    '</span>'
+                )
             # Low-sample chip when N < 3 — sits next to the ad count so
             # the median figures next to it still read as "directional".
-            # Winners require N >= 3 by construction so the two chips
-            # never appear on the same row.
             low_sample = (' <span class="low-sample-chip" '
                           'title="Median computed from fewer than 3 '
                           'ads — read as directional.">low sample</span>'
                           if r["insufficient"] else "")
             body.append(
-                f'<tr class="{winner_cls}">'
-                f'<td><strong>{_esc(r["format"])}</strong>{winner_pill}</td>'
+                f'<tr>'
+                f'<td><strong>{_esc(r["format"])}</strong>{lead_note}</td>'
                 f'<td>{H.fmt_int(r["n"])}{low_sample}</td>'
                 f'<td class="num">{H.fmt_money(r["total_spend"], sym)}</td>'
                 f'<td class="num">{H.fmt_int(r["total_purch"])}</td>'
-                # `is not None`: a genuine 0.00 median (all-KILL cell) must
-                # render as 0.00×, not be mistaken for missing data.
-                f'<td class="num {H.roas_class(r["median_roas"])}">'
+                # `is not None`: a genuine 0.00 median (every ad spent but
+                # returned nothing) must render as 0.00×, not as missing data.
+                f'<td class="num">'
                 f'{H.fmt_float(r["median_roas"], 2) if r["median_roas"] is not None else "—"}'
                 f'{"×" if r["median_roas"] is not None else ""}</td>'
                 f'<td class="num">{H.fmt_pct(r["median_ctr"]) if r["median_ctr"] is not None else "—"}</td>'
                 f'<td class="num">{H.fmt_money(r["median_cpa"], sym, 2) if r["median_cpa"] is not None else "—"}</td>'
-                f'<td>{_render_status_mix(r["status_counts"])}</td>'
                 f'</tr>'
             )
         sections.append(_subst(block_tpl, {
@@ -299,25 +269,6 @@ def _render_grid(grid: dict, H, sym: str) -> str:
         }))
     return _read(VIEWS / "grid_section.html").replace(
         "{PRODUCT_BLOCKS}", ''.join(sections)
-    )
-
-
-def _render_recommendations(recs: list[dict]) -> str:
-    if not recs:
-        return ""
-    card_tpl = _read(VIEWS / "rec_card.html")
-    cards = []
-    for r in recs:
-        # r["body"] is pre-escaped at construction in
-        # production_recommendations.py; _subst stamps it without re-scanning.
-        cards.append(_subst(card_tpl, {
-            "{KIND}":     str(r["kind"]),
-            "{PRIORITY}": str(r["priority"]),
-            "{HEADLINE}": _esc(r["headline"]),
-            "{BODY}":     r["body"],
-        }))
-    return _read(VIEWS / "recommendations_section.html").replace(
-        "{CARDS}", ''.join(cards)
     )
 
 
@@ -418,10 +369,10 @@ def _resolve_fx(account_currency: str, store_currency: str,
          still renders. A warning sits on the orchestrator caller.
     """
     # A non-positive rate (e.g. a config typo like ``"USD": 0``) would
-    # silently multiply every spend/revenue figure by 0 — zeroing ROAS and
-    # scoring every ad KILL. ``safe_float`` coerces both 0 and None to 0.0,
-    # so guard explicitly with ``> 0`` and fall back to the identity
-    # multiplier rather than emit a zeroed report.
+    # silently multiply every spend/revenue figure by 0 — zeroing ROAS across
+    # the report. ``safe_float`` coerces both 0 and None to 0.0, so guard
+    # explicitly with ``> 0`` and fall back to the identity multiplier rather
+    # than emit a zeroed report.
     explicit = store_cfg.get(explicit_key)
     if explicit is not None:
         rate = safe_float(explicit, 1.0)
@@ -532,7 +483,6 @@ def build(inputs_dir: Path, config: dict) -> str:
     ad_processing = _load_module(TRANSFORMS / "ad_processing.py")
     store_rollups = _load_module(TRANSFORMS / "store_rollups.py")
     product_format_grid = _load_module(TRANSFORMS / "product_format_grid.py")
-    production_recs = _load_module(INSIGHTS / "production_recommendations.py")
     next_questions = _load_module(INSIGHTS / "next_questions.py")
     logos = _load_module(CHROME / "logos.py")
 
@@ -566,28 +516,12 @@ def build(inputs_dir: Path, config: dict) -> str:
 
         rollup = store_rollups.rollups(store)
         grid = product_format_grid.grid(ads)
-        recs = production_recs.recommendations(store, n_days)
         qs = next_questions.questions(store)
 
         # KPI tiles
         tiles_html = _render_kpi_bar(rollup, n_days, helpers)
         # Anomalies banner
         anomalies_html = _render_anomalies(store["anomalies"])
-
-        # Status chips
-        sc_counts = rollup["status_counts"]
-        chips = ['<div class="status-chips">']
-        chips.append(f'<button class="chip active" data-action="filter-status" '
-                     f'data-status="all" data-sid="{store["id"]}">'
-                     f'All ({helpers.fmt_int(rollup["n_ads"])})</button>')
-        for s in STATUS_ORDER:
-            n = sc_counts.get(s, 0)
-            chips.append(f'<button class="chip chip-{STATUS_COLOR[s]}" '
-                          f'data-action="filter-status" '
-                          f'data-status="{s}" data-sid="{store["id"]}">'
-                          f'{s} ({helpers.fmt_int(n)})</button>')
-        chips.append('</div>')
-        chips_html = "".join(chips)
 
         # Ad table
         if ads:
@@ -613,20 +547,17 @@ def build(inputs_dir: Path, config: dict) -> str:
                 "at least one ad account has tracked spend.",
             )
 
-        # Grid / recs / questions (no lifetime section in 7-day snapshot mode)
+        # Grid / questions (no lifetime section in 7-day snapshot mode)
         grid_html = _render_grid(grid, helpers, store["sym"])
-        rec_html = _render_recommendations(recs)
         questions_html = _render_questions(qs)
 
         rendered_stores.append({
             "id":        store["id"],
             "name":      store["name"],
             "tiles":     tiles_html,
-            "chips":     chips_html,
             "anomalies": anomalies_html,
             "table":     table_html,
             "grid":      grid_html,
-            "recs":      rec_html,
             "questions": questions_html,
         })
 
@@ -637,7 +568,7 @@ def build(inputs_dir: Path, config: dict) -> str:
         names = ", ".join(_esc(e["name"]) for e in all_excluded)
         exclusion_note = (f'<div class="exclusion-note">Excluded at your request: '
                           f'{n_camp} campaign(s) — {names}. '
-                          f'These campaigns are not scored.</div>')
+                          f'These campaigns are left out of this report.</div>')
     else:
         exclusion_note = ""
 
@@ -661,10 +592,8 @@ def build(inputs_dir: Path, config: dict) -> str:
             "{STORE_ID}":  str(rs["id"]),
             "{KPI_BAR}":   rs["tiles"],
             "{ANOMALIES}": rs["anomalies"],
-            "{CHIPS}":     rs["chips"],
             "{TABLE}":     rs["table"],
             "{GRID}":      rs["grid"],
-            "{RECS}":      rs["recs"],
             "{QUESTIONS}": rs["questions"],
         })
 

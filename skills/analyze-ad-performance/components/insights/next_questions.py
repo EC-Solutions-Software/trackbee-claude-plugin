@@ -69,9 +69,8 @@ def build(meta_campaigns: list[dict], goog_campaigns: list[dict],
             ),
             "why": (
                 f"Frequency {freq:.1f} on {_fh.money(spend, sym)} of spend at "
-                f"{roas:.2f}× ROAS. Ad-level fatigue typically surfaces several days "
-                "before campaign ROAS drops. Review retention and CTR at the ad level "
-                "to identify which creative to refresh."
+                f"{roas:.2f}× ROAS. CTR and retention at the ad level are the figures "
+                "that show how each creative is performing as frequency climbs."
             ),
         })
 
@@ -97,13 +96,12 @@ def build(meta_campaigns: list[dict], goog_campaigns: list[dict],
             ),
             "why": (
                 f"{plat} delivered {_fh.money(spend, sym)} below break-even. "
-                "Before pausing, isolate the cause: CTR signals creative, frequency "
-                "signals audience, and ATC-to-purchase rate signals landing page or "
-                "checkout."
+                "CTR speaks to creative, frequency to audience, and ATC-to-purchase "
+                "rate to landing page or checkout."
             ),
         })
 
-    # Q3 — scaling lane.
+    # Q3 — high-ROAS campaign at low frequency: surface its efficiency figures.
     scaling: list[tuple[dict, float, float, str]] = []
     for c in meta_active:
         r = _fh.safe_float(c.get("purchase_roas"))
@@ -121,12 +119,15 @@ def build(meta_campaigns: list[dict], goog_campaigns: list[dict],
         fx = m_fx if plat == "Meta" else g_fx
         cname = _fh.text(_fh.short(c.get("campaign_name", ""), 44))
         questions.append({
-            "q": f"How far can {cname} scale before efficiency degrades?",
+            "q": (
+                f"Show {cname}'s CPM, frequency, ROAS, and new-customer share "
+                "across the daily spend levels it has run at."
+            ),
             "why": (
                 f"This {plat} campaign holds {r:.2f}× ROAS on "
-                f"{_fh.money(s * fx, sym)} of spend. Increase daily budget 20–30%, "
-                "then monitor CPM, frequency, and new-customer share over 48 hours "
-                "before scaling further."
+                f"{_fh.money(s * fx, sym)} of spend. CPM, frequency, and "
+                "new-customer share are the figures that show how efficiency "
+                "tracks with spend level."
             ),
         })
 

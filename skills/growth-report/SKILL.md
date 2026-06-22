@@ -4,19 +4,17 @@ description: >-
   Build the TrackBee Growth Report — a self-contained HTML artifact
   answering "What is actually driving profitable growth, and why?" for
   any TrackBee-connected store. Compares the last 7 days against the
-  prior 7 days, renders a narrative answer (short answer + why +
-  structural takeaway + priority actions), a what's-working /
+  prior 7 days, renders a narrative answer (short answer + why,
+  grounded in this window's measured figures), a what's-working /
   what's-breaking split, and the full TrackBee Growth metric framework
-  with each row's current/prior values and interpretation. Always creates
-  a live Cowork artifact under a stable store-scoped id and schedules a
-  daily 08:00 refresh. Trigger when asked "what's driving profitable
-  growth", "what's working / breaking on this store", "is MER improving",
-  "build the growth report", "open the growth scorecard", or any request
-  to score a store against the TrackBee growth checklist. Distinct from
-  the attribution skill (multi-touch channel journeys, NC-ROAS, channel
-  mix) and the performance skill (ad-account diagnostics) — use
-  growth-report for the profitable-growth KPI + structural-driver
-  narrative.
+  with each row's current/prior values and week-over-week change. Always creates
+  a live Cowork artifact and schedules a daily 08:00 refresh. Trigger when
+  asked "what's driving profitable growth", "what's working / breaking on this
+  store", "is MER improving", "build the growth report", "open the growth
+  scorecard", or any request to score a store against the TrackBee growth
+  checklist. Distinct from attribution (multi-touch channel journeys, NC-ROAS,
+  channel mix) and performance (ad-account diagnostics) — use growth-report
+  for the profitable-growth KPI + structural-driver narrative.
 ---
 
 # Growth Report
@@ -56,11 +54,11 @@ user gets every piece of data we actually have.
    pick by number. Present them **factually only**: do not label, group, or
    infer which are "test" campaigns, and do not recommend exclusions from
    the names — a campaign name is not a reliable signal of intent, so the
-   choice is the user's. Ask which to exclude from the recommendations
+   choice is the user's. Ask which to exclude from the report
    (default: none → empty list); accept row numbers or ids and resolve them
    to `campaign_id`s. If the resulting list is non-empty, echo it
-   back and require an explicit yes before building: "Excluding N campaign(s)
-   from recommendations: name1, name2 — proceed?" If the list is empty, no
+   back and require an explicit yes before building: "Excluding N campaign(s):
+   name1, name2 — proceed?" If the list is empty, no
    confirmation is needed. On a scheduled refresh, reuse the saved list
    unchanged rather than re-asking.
 
@@ -173,12 +171,12 @@ under `/tmp/growth_report_inputs/`.
 | `funnel_prior.json` | `tool__get_funnel_overview` | Optional. Used as a fallback if `funnel_current.json` somehow doesn't include the comparison block. |
 | `platform_footprints_current.json` | `tool__get_platform_footprints` | Channel share-of-orders, top/mid/bottom shares — drives first-touch + last-touch + assist rows. |
 | `meta_recommendations.json` | `tool__get_meta_recommendations` | Meta's own creative-fatigue + fragmentation flags — drives the creative-fatigue row. |
-| `meta_campaigns.json` | `tool__get_meta_campaign_insights` | Current window only, `status_filter="all"`. Used to name the specific Meta campaigns the Next steps actions call out (worst-performing sub-1.0-ROAS spenders and top-ROAS scale candidates). |
-| `google_campaigns.json` | `tool__get_google_campaign_insights` | Current window only, `status_filter="all"`. Used to name the specific Google campaigns the Next steps actions call out. |
+| `meta_campaigns.json` | `tool__get_meta_campaign_insights` | Current window only, `status_filter="all"`. Used to resolve excluded `campaign_id`s back to campaign names for the exclusion note. |
+| `google_campaigns.json` | `tool__get_google_campaign_insights` | Current window only, `status_filter="all"`. Same — name resolution for the exclusion note. |
 | `anomalies.json` | `tool__detect_anomalies` | Cover both windows. Drives the confidence row. |
 
 **`tool__get_meta_campaign_insights` and `tool__get_google_campaign_insights` return large
-payloads (~90KB each).** Slim them at fetch time to keep only `campaign_id`, `campaign_name`, `campaign_type` (Google only), `spend`, `purchase_roas` / `conversions_value`, and a couple of related fields — the Next steps actions only need campaign names + per-campaign ROAS + spend. See the slim shape used in `metrics_table.py` and `insights/answer.py` for the exact fields consumed.
+payloads (~90KB each).** Slim them at fetch time to keep only `campaign_id`, `campaign_name`, `campaign_type` (Google only), `spend`, `purchase_roas` / `conversions_value`, and a couple of related fields — the exclusion note only needs `campaign_id` + `campaign_name`.
 
 **Missing inputs:** if a tool errors (store not connected, ad account
 missing, etc.), skip the file. The orchestrator tolerates absent files —
@@ -227,9 +225,10 @@ exact dates with `--print-windows` (step 2) and use them for the MCP calls.
 Omit `anchor_date` to default to yesterday.
 
 `scope.exclude_campaign_ids` is an optional list of campaign **ids** to drop
-from the Next-steps recommendations (e.g. test campaigns). Resolve any
-user-named campaigns to their ids from the fetched campaign payloads. Empty
-list = exclude nothing.
+from the report (e.g. test campaigns). The excluded names are listed in a
+plain-language note so nothing is hidden silently. Resolve any user-named
+campaigns to their ids from the fetched campaign payloads. Empty list =
+exclude nothing.
 
 ## Component layout
 
@@ -245,7 +244,7 @@ components/
     drivers.py                  what's-working / what's-breaking lists
     metrics_table.py            the metric framework table
   insights/                     payload -> narrative strings
-    answer.py                   hero headline + answer card + actions
+    answer.py                   hero headline + answer card (lead answer + why)
   orchestrators/
     assemble.py                 loads each transform/insight + stamps HTML
 ```

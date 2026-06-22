@@ -13,10 +13,10 @@ def _heatmap_cell(value, is_diag):
     if is_diag:
         return f"<td class='hcell diag'>{value:.1f}%</td>"
     t = max(0, min(1, value / 100))
-    r = int(0xDF + t * (0x00 - 0xDF))
-    g = int(0xEA + t * (0x72 - 0xEA))
-    b = int(0xFB + t * (0xFF - 0xFB))
-    txt = "#040F24" if t < 0.55 else "#FFFFFF"
+    r = int(0xF0 + t * (0x00 - 0xF0))
+    g = int(0xF2 + t * (0x66 - 0xF2))
+    b = int(0xFF + t * (0xCC - 0xFF))
+    txt = "#0D1245" if t < 0.55 else "#FFFFFF"
     return f"<td class='hcell' style='background:rgb({r},{g},{b});color:{txt}'>{value:.1f}%</td>"
 
 

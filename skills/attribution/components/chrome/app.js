@@ -83,14 +83,13 @@ function renderInsightList(elId, insights) {
   const el = document.getElementById(elId);
   if (!el) return;
   el.className = 'insight-list';
+  // Insights are factual observations only — no TrackBee-authored action line.
   el.innerHTML = (insights || []).map(i => {
     const obs = typeof i === 'string' ? i : i.obs;
-    const act = typeof i === 'string' ? '' : i.act;
     return `<li class="insight-item">
       <span class="insight-bullet"></span>
       <div>
         <div class="insight-obs">${obs}</div>
-        ${act ? `<div class="insight-act">${act}</div>` : ''}
       </div>
     </li>`;
   }).join('');

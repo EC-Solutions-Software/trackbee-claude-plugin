@@ -1,13 +1,16 @@
 """Channel-attribution insights for the Attribution Overview report.
 
-Answers the four strategic questions — which channel contributes most, where
-to spend more or less, which channels may be over-credited, and what changed —
-from the per-window channel rows. Pure string formatting over the ``_ctx``
-block the window-metrics transform produced. Self-contained — stdlib only.
+Reports the per-channel figures — ROAS spread across paid channels, CPA
+spread, the highest-ROAS low-spend-share channel, zero-spend earned revenue,
+and any paid channel below 2× ROAS that holds significant spend — all as
+measured figures. Pure string formatting over the ``_ctx`` block the
+window-metrics transform produced. Self-contained — stdlib only.
+
+Insights are observations only; no recommended action is attached.
 """
 
 
-def _insight(observation, action):
+def _insight(observation, action=""):
     return {"obs": observation, "act": action}
 
 
@@ -32,9 +35,7 @@ def build(ctx, fmt):
             out.append(_insight(
                 f"<strong>{best_p['channel']}</strong> returns {best_p['roas']:.2f}x ROAS vs "
                 f"<strong>{worst_p['channel']}</strong> at {worst_p['roas']:.2f}x. "
-                f"<strong>{dominant['channel']}</strong> takes {dom_share:.0f}% of paid spend.",
-                f"Consider gradually shifting budget from {worst_p['channel']} toward {best_p['channel']} "
-                f"while watching for frequency and saturation signals."
+                f"<strong>{dominant['channel']}</strong> takes {dom_share:.0f}% of paid spend."
             ))
 
     # Q2 — CPA comparison (highest vs lowest).
@@ -47,12 +48,10 @@ def build(ctx, fmt):
             out.append(_insight(
                 f"<strong>{cheapest['channel']}</strong> CPA is {fmt_ccy(cheapest['cpa'])} vs "
                 f"<strong>{priciest['channel']}</strong> at {fmt_ccy(priciest['cpa'])} "
-                f"({ratio:.1f}× difference).",
-                f"Audit {priciest['channel']} creative and audience targeting — "
-                f"a {ratio:.0f}× CPA gap is large enough to materially improve blended efficiency if closed."
+                f"({ratio:.1f}× difference)."
             ))
 
-    # Q3 — Underinvested high-ROAS channel (high ROAS but low spend share).
+    # Q3 — highest-ROAS channel holding a small share of spend (< 15%).
     if paying:
         total_spend = sum(r["spend"] for r in paying)
         dominant_channel = max(paying, key=lambda r: r["spend"])["channel"]
@@ -65,11 +64,9 @@ def build(ctx, fmt):
             gem = max(candidates, key=lambda r: r["roas"])
             spend_share = gem["spend"] / total_spend * 100 if total_spend else 0
             out.append(_insight(
-                f"<strong>{gem['channel']}</strong> returns {gem['roas']:.2f}x ROAS on just "
-                f"{fmt_ccy(gem['spend'])} ({spend_share:.0f}% of paid spend) — "
-                f"the most underinvested channel relative to its return.",
-                f"Test a modest budget increase on {gem['channel']}. "
-                f"Monitor ROAS weekly — high-ROAS small channels often have a ceiling."
+                f"<strong>{gem['channel']}</strong> returns {gem['roas']:.2f}x ROAS on "
+                f"{fmt_ccy(gem['spend'])} ({spend_share:.0f}% of paid spend) — the "
+                f"highest ROAS among channels holding under 15% of spend."
             ))
 
     # Q4 — Zero-spend channels (Klaviyo etc.) — use TrackBee numbers.
@@ -78,9 +75,7 @@ def build(ctx, fmt):
         purch_str = f"{fmt_int(er['purch_tb'])} orders, " if er.get("purch_tb") else ""
         out.append(_insight(
             f"<strong>{er['channel']}</strong> drove {purch_str}"
-            f"{fmt_ccy(er['rev_tb'])} in revenue at zero media cost (TrackBee-reported).",
-            f"Measure {er['channel']}'s incremental lift with a holdout test — "
-            f"some of these conversions may already be counted by paid platforms."
+            f"{fmt_ccy(er['rev_tb'])} in revenue at zero media cost (TrackBee-reported)."
         ))
 
     # Q5 — Flag any paid channel below 2× ROAS that holds significant spend.
@@ -96,11 +91,9 @@ def build(ctx, fmt):
             spend_share = u["spend"] / total_spend * 100 if total_spend else 0
             purch_str = f"{fmt_int(round(u['purch_in']))} purchases, " if u.get("purch_in") else ""
             out.append(_insight(
-                f"<strong>{u['channel']}</strong> is the only paid channel below 2× ROAS "
+                f"<strong>{u['channel']}</strong> is below 2× ROAS "
                 f"({u['roas']:.2f}x) and holds {spend_share:.0f}% of spend "
-                f"({purch_str}{fmt_ccy(u['spend'])} spent).",
-                f"Set a ROAS floor for {u['channel']} campaigns. "
-                f"Shift underperforming budget to campaigns already above target before adding new spend."
+                f"({purch_str}{fmt_ccy(u['spend'])} spent)."
             ))
 
     return out

@@ -26,32 +26,32 @@ def build(ref, has_profiles, top_opener):
     # 1) Funnel deep-dive (always present — the headline section).
     if ref_worst.get("worst_to_label") and ref_worst.get("worst_rate") is not None:
         out.append({
-            "label": "Diagnose the biggest funnel leak",
+            "label": "Break down the biggest funnel leak",
             "prompt": (
                 f"My biggest funnel drop in the last 28 days is between the previous step and "
                 f"{ref_worst['worst_to_label']} at {(ref_worst['worst_rate'] or 0)*100:.1f}% conversion. "
-                f"Walk me through specific A/B tests, copy changes, and technical checks I should run to "
-                f"recover that revenue, in priority order."
+                f"Break this step down by device, channel, and new-vs-returning visitors, and show how "
+                f"the conversion rate at this step has trended over the window."
             ),
         })
 
-    # 2) Paid channel scaling — if the top paying channel has a workable ROAS.
+    # 2) Top paying channel — surface its per-campaign figures.
     if ref_top_paying and (ref_top_paying.get("roas") or 0) >= 1.5:
         out.append({
             "label": f"Break down {ref_top_paying['channel']} campaigns",
             "prompt": (
                 f"Show me the campaign-level breakdown for {ref_top_paying['channel']} over the last 28 days. "
-                f"Group by campaign objective, flag the ones driving the most efficient ROAS, and recommend "
-                f"which to scale, hold, or cut. Also tell me whether new-customer ROAS justifies a budget lift."
+                f"Group by campaign objective and show spend, ROAS, and the new-vs-returning ROAS split "
+                f"for each campaign."
             ),
         })
     elif ref_best_roas:
         out.append({
-            "label": f"Explore scaling {ref_best_roas['channel']}",
+            "label": f"Break down {ref_best_roas['channel']}",
             "prompt": (
                 f"{ref_best_roas['channel']} is showing the highest ROAS of any paid channel "
-                f"({ref_best_roas['roas']:.2f}x). What does its current scale and headroom look like, and "
-                f"how should I think about a 10-20% budget increase without diminishing returns?"
+                f"({ref_best_roas['roas']:.2f}x). Show its current spend, ROAS, frequency, and CPM, and how "
+                f"each has trended across the spend levels it has run at over the last 28 days."
             ),
         })
 
@@ -61,7 +61,7 @@ def build(ref, has_profiles, top_opener):
         "prompt": (
             "Why do my Meta and Google in-platform purchase/revenue numbers differ from what TrackBee "
             "reports? Break down the most likely sources of the gap (attribution windows, view-through, "
-            "click-id matching, deduping) and tell me which set I should trust for budget decisions."
+            "click-id matching, deduping) and quantify how much of the gap each source accounts for."
         ),
     })
 
@@ -81,7 +81,7 @@ def build(ref, has_profiles, top_opener):
             "prompt": (
                 f"{ref_top_channel['channel']} is the largest revenue contributor in the last 28 days. "
                 f"Pull the creative-level breakdown so I can see which ads and audiences are driving it, "
-                f"flag fatigue signals, and suggest the next creative angle to test."
+                f"and show CTR, frequency, and ROAS per creative over time."
             ),
         })
 

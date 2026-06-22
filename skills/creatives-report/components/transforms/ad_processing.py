@@ -3,8 +3,12 @@
 Take raw ``tool__get_meta_ad_insights`` / ``tool__get_google_ad_insights`` rows for
 the last 7 days and produce the unified per-ad records the rest of the
 pipeline consumes. No prior-period slice — the audit is by design a
-pure 7-day snapshot, so fatigue scoring uses absolute thresholds
-only.
+pure 7-day snapshot.
+
+The report presents measured per-ad statistics only (spend, ROAS,
+frequency, reach, net-new-reach share, purchases, new-customer share,
+1d/28d splits). It does not score or label ads — readers interpret the
+figures themselves.
 
 Inputs are mutated only in the sense that we read out the fields we
 care about — we don't write back. The unified record shape is
@@ -30,7 +34,6 @@ def _load(name: str, path: Path):
 
 
 _H = _load("format_helpers", _CHROME / "format_helpers.py")
-_F = _load("fatigue_scoring", _HERE / "fatigue_scoring.py")
 
 safe_float = _H.safe_float
 parse_date = _H.parse_date
@@ -186,16 +189,14 @@ def process_meta_ad(ad: dict, m_fx: float, sym: str, window_end,
     nnr       = safe_float(nnr_raw)
     p1d       = safe_float(ad.get("purchases_1d_click"))
     p28d      = safe_float(ad.get("purchases_28d_click"))
-    # Like net_new_reach below: missing new-customer data must stay None
-    # (renders "—", never tags "retargeting only"); only a present value —
-    # including a genuine 0 — feeds the acquisition-fade tag.
+    # Like net_new_reach below: missing new-customer data stays None
+    # (renders "—"); only a present value — including a genuine 0 — is shown.
     nc_raw    = ad.get("new_customer_purchases")
     nc        = safe_float(nc_raw) if nc_raw is not None else None
     nc_rev    = safe_float(ad.get("new_customer_revenue")) * m_fx
     cpa       = (spend / purchases) if purchases > 0 else None
-    # A missing net_new_reach must stay None (renders "—", never scores
-    # REFRESH); only a present value — including a genuine 0, the
-    # audience-exhausted REFRESH trigger — yields a share.
+    # A missing net_new_reach stays None (renders "—"); only a present value —
+    # including a genuine 0 (no net-new people reached) — yields a share.
     nnr_share = (nnr / reach) if (nnr_raw is not None and reach > 0) else None
 
     first_active = (parse_date(ad.get("first_active_date"))
@@ -206,12 +207,6 @@ def process_meta_ad(ad: dict, m_fx: float, sym: str, window_end,
 
     fmt = meta_format(ad)
     creative = ad.get("creative") or {}
-    metrics = {
-        "spend": spend, "roas": roas, "frequency": freq, "ctr": ctr,
-        "purchases": purchases, "nnr_share": nnr_share, "reach": reach,
-        "p_1d_click": p1d, "p_28d_click": p28d, "new_customers": nc,
-    }
-    scored = _F.score_ad(metrics, "meta")
 
     product = infer_product(
         ad.get("ad_name"),
@@ -253,9 +248,6 @@ def process_meta_ad(ad: dict, m_fx: float, sym: str, window_end,
         "nc_revenue":   nc_rev,
         "first_active": first_active.isoformat() if first_active else None,
         "age_days":     age_days,
-        "status_tag":   scored["status"],
-        "reason":       scored["reason"],
-        "tags":         scored["tags"],
         "product":      product,
         "sym":          sym,
     }
@@ -281,7 +273,7 @@ def process_google_ad(ad: dict, campaign: dict, g_fx: float, sym: str,
     # Google reports fractional conversions. Round once here so the displayed
     # per-ad purchases and the KPI rollup (store_rollups sums this same field)
     # reconcile — summing raw fractionals then truncating each row would make
-    # the rows fail to add up to the total. Keep `conv` raw for CPA / scoring.
+    # the rows fail to add up to the total. Keep `conv` raw for the CPA ratio.
     purchases_rounded = round(conv)
     conv_val  = safe_float(ad.get("conversions_value")) * g_fx
     # Zero-spend ads have no defined ROAS — leave it absent (None → "—") rather
@@ -306,29 +298,10 @@ def process_google_ad(ad: dict, campaign: dict, g_fx: float, sym: str,
         ad_name = ad.get("asset_group_name") or "Asset Group"
         body    = " · ".join((ad.get("headlines") or [])[:2]) or ""
         title   = ", ".join((ad.get("descriptions") or [])[:1])
-        # Exclude PMAX asset groups from fatigue scoring — no per-asset spend
-        scored = {"status": "HOLD",
-                  "reason": "PMAX asset group — no per-asset spend.",
-                  "tags": ["pmax"]}
     else:
         ad_name = ad.get("ad_name") or str(ad.get("ad_id") or "Ad")
         body    = " · ".join((ad.get("headlines") or [])[:2])
         title   = ", ".join((ad.get("descriptions") or [])[:1])
-        # WARNING — Google has no Meta-only signals (frequency, net-new-reach,
-        # 1d/28d click splits), so we stuff zero sentinels to satisfy score_ad.
-        # This is a load-bearing coupling: nnr_share=0 PASSES the NNR-collapse
-        # REFRESH gate's `0 <= nnr_share < 0.10`; the ONLY thing stopping a
-        # false REFRESH on every Google ad is reach=0 failing the `reach > 1000`
-        # check in the same branch. Do NOT replace the reach sentinel with a
-        # real value (e.g. impressions) and do NOT reuse this zero-stuffing
-        # pattern for another platform — switch to None sentinels + explicit
-        # absence handling in score_ad first (deferred follow-up).
-        metrics = {
-            "spend": spend, "roas": roas, "frequency": 0, "ctr": ctr,
-            "purchases": conv, "nnr_share": 0, "reach": 0,
-            "p_1d_click": 0, "p_28d_click": 0, "new_customers": nc,
-        }
-        scored = _F.score_ad(metrics, "google")
 
     product = infer_product(
         ad.get("ad_name") or ad.get("asset_group_name"),
@@ -375,9 +348,6 @@ def process_google_ad(ad: dict, campaign: dict, g_fx: float, sym: str,
         "nc_revenue":   nc_rev,
         "first_active": first_active.isoformat() if first_active else None,
         "age_days":     age_days,
-        "status_tag":   scored["status"],
-        "reason":       scored["reason"],
-        "tags":         scored["tags"],
         "product":      product,
         "is_pmax":      is_pmax,
         "sym":          sym,
@@ -396,11 +366,8 @@ def process_google_ad(ad: dict, campaign: dict, g_fx: float, sym: str,
 #   clicks, atc, purchases, revenue, roas, cpa:        float | None,
 #   nnr, nnr_share, p_1d_click, p_28d_click, nc, nc_revenue: float | None,
 #   first_active:    ISO date str | None,
-#   age_days:        int | None  (how long the ad has been live, not
-#                    used in 7-day scoring but kept for context),
-#   status_tag:      "SCALE" | "HOLD" | "REFRESH" | "KILL",
-#   reason:          str (plain-language explanation),
-#   tags:            list[str] (secondary chips),
+#   age_days:        int | None  (how long the ad has been live,
+#                    kept for context),
 #   product:         str (inferred product label),
 #   sym:             str (currency symbol for display),
 # }

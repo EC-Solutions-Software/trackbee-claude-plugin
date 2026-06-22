@@ -13,7 +13,18 @@ from pathlib import Path
 
 
 def load_icon_b64(skill_dir: Path) -> str:
-    """Return the base64-encoded TrackBee icon. Raises if missing."""
+    """Return the base64-encoded TrackBee mark for the header.
+
+    Prefers the dark-variant wordmark (the header is a navy surface, per
+    the brand variant decision tree); falls back to the bee icon. Raises
+    only when no brand asset shipped at all.
+    """
+    wm = skill_dir / "assets" / "tb_wordmark_dark_b64.txt"
+    if wm.is_file():
+        return wm.read_text(encoding="utf-8").strip()
+    wm_png = skill_dir / "assets" / "trackbee-wordmark-dark.png"
+    if wm_png.is_file():
+        return base64.b64encode(wm_png.read_bytes()).decode("ascii")
     p = skill_dir / "assets" / "ICON-PNG.png"
     if not p.is_file():
         raise FileNotFoundError(
@@ -25,12 +36,11 @@ def load_icon_b64(skill_dir: Path) -> str:
 
 
 def render_logo_block(icon_b64: str) -> str:
-    """The header logo block (icon + TrackBee wordmark text).
+    """The header brand lockup (dark-variant wordmark image).
 
-    Emits the icon and wordmark as direct flex children of `.page-header`
-    using the class names the theme styles (`.tb-icon`, `.wordmark`).
+    The wordmark lockup already contains the bee mark, so it renders
+    alone — no second standalone bee, no typeset duplicate.
     """
     return (
-        f'<img src="data:image/png;base64,{icon_b64}" alt="TrackBee" class="tb-icon">'
-        '<span class="wordmark">TrackBee</span>'
+        f'<img src="data:image/png;base64,{icon_b64}" alt="TrackBee" class="tb-wordmark-dark">'
     )

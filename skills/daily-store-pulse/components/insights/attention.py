@@ -124,7 +124,7 @@ _REC_SKIP_TYPES = {
     "FLEXIBLE_MEDIA", "IMAGE_ANIMATION", "ADD_OVERLAYS", "PROFILE_TILE",
     "TEXT_IMPROVEMENTS", "STORE_VISITS",
 }
-# Recs that genuinely affect spend efficiency — these can nudge the verdict.
+# Recs that genuinely affect spend efficiency — surfaced at medium severity.
 _REC_ELEVATE_TYPES = {
     "CREATIVE_LIMITED", "CREATIVE_FATIGUE", "LOW_OUTCOMES",
     "UNDERPERFORMING", "BUDGET", "BID",
@@ -164,8 +164,8 @@ def _lift(r):
 def _from_meta(payload, cap=2):
     """Group Meta recs by type (collapsing the many per-ad-set duplicates), drop
     cosmetic nudges, and emit at most ``cap`` items. Only spend-efficiency recs
-    (creative-limited, fatigue, …) carry medium severity and can move the
-    verdict; everything else is low-severity, informational."""
+    (creative-limited, fatigue, …) carry medium severity; everything else is
+    low-severity, informational."""
     recs = [r for r in _rec_list(payload) if isinstance(r, dict)]
 
     grouped = {}

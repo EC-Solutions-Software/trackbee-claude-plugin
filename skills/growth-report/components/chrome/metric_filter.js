@@ -1,6 +1,7 @@
-// Metric framework filter glue: all / positive / negative.
+// Metric framework filter glue: all / up / down.
 // Delegated click listener on the filter bar toggles row visibility by the
-// row's data-signal. No inline handlers; data comes from the DOM.
+// row's data-signal (direction of the week-over-week change — never a
+// good/bad judgement). No inline handlers; data comes from the DOM.
 (function () {
   const filter = document.getElementById('metricFilter');
   if (!filter) return;
@@ -13,10 +14,10 @@
     const f = btn.getAttribute('data-f');
     const rows = document.querySelectorAll('#metricsBody tr');
     rows.forEach(function (tr) {
-      const signal = tr.getAttribute('data-signal') || 'neutral';
+      const signal = tr.getAttribute('data-signal') || 'flat';
       let show = true;
-      if (f === 'positive') show = signal === 'positive';
-      else if (f === 'negative') show = signal === 'negative';
+      if (f === 'up') show = signal === 'up';
+      else if (f === 'down') show = signal === 'down';
       tr.style.display = show ? '' : 'none';
     });
   });
