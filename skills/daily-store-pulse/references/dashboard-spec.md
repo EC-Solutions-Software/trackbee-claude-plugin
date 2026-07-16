@@ -113,8 +113,8 @@ rather than a broken build.
 
 ## Voice
 
-Every user-facing string follows the project voice contract in `VOICE.md`
-(repo root). Reconcile copy there.
+Every user-facing string follows the project voice contract. Reconcile
+copy against it.
 
 ## Output + artifact convention
 

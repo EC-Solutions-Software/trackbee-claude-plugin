@@ -4,8 +4,7 @@
 
 TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name>` slash command — the plugin provides the trigger. An active TrackBee Insights connection is required. Type any of the following:
 
-- `/get-started` — onboarding entry point: pick a store and route to the right skill.
-- `/discover-insights` — surface what TrackBee Insights can answer and route to the right skill.
+- `/discover-insights` — getting-started entry point: pick a store, see what TrackBee Insights can answer, and route to the right skill.
 - `/check-tracking-setup` — check which ad and analytics platforms are connected for a store and whether each connection is set up correctly.
 - `/analyze-ad-performance` — build the Ad Performance Dashboard: Meta + Google campaigns with a KPI bar, a sortable per-campaign / per-ad table (spend, ROAS, frequency, reach, CTR, CPC and more), and per-platform key observations, packaged as one Live Artifact.
 - `/attribution` — build the Attribution Overview: Executive Summary, Blended Overview, Platform Overview, Channel Attribution, Customer Journeys, a Store Funnel Analysis, and a "Where to go next" prompt dock, packaged as one self-contained Live Artifact.
@@ -21,6 +20,7 @@ TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name
 - `/discuss-artifact` — answer follow-up questions about a Live Artifact already open in the conversation.
 - `/get-help-faq` — troubleshooting and FAQ for common questions and stuck states.
 - `/product-feedback` — share what's missing or could be improved in TrackBee Insights (also surfaces on its own after a few questions).
+- `/tailor-insights` — set up or update your marketing-strategy context (goals, strategy) so TrackBee Insights tailors its answers to you; captures your own context, does not report store numbers.
 
 Skills that render a Live Artifact (`analyze-ad-performance`, `attribution`, `creatives-report`, `daily-store-pulse`, `growth-report`) ship their build pipeline here. Every other skill is a minimal `SKILL.md` that delegates to the TrackBee Insights MCP at invocation time.
 

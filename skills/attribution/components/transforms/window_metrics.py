@@ -44,6 +44,21 @@ def _platform_stat(overview_obj, provider_key):
     return {"spend": 0, "revenue": 0, "roas": 0, "clicks": 0, "cpc": 0}
 
 
+def _sum_perf(perf):
+    """Sum a get_campaign_performance payload into platform-reported totals.
+
+    Used for Pinterest/TikTok, which have no live-API insights tool. Returns the
+    platform-reported purchase count (TikTok orders / Pinterest checkouts) plus
+    impressions and clicks. Empty/missing payloads collapse to zeros.
+    """
+    campaigns = (perf or {}).get("campaigns") or []
+    return {
+        "purchases": sum((c.get("purchases") or 0) for c in campaigns),
+        "impressions": sum(int(c.get("impressions") or 0) for c in campaigns),
+        "clicks": sum(int(c.get("clicks") or 0) for c in campaigns),
+    }
+
+
 def _sum_spend_eur(insights, fx):
     """Sum campaign spend, converting each row to store currency via its own
     ad_account_currency (falling back to the payload's ad-account currency)."""
@@ -121,11 +136,20 @@ def _compute_window(window_key, windows, daily, daily_spend_for, fx):
     ov = w.get("overview") or {}
     _meta_ov = _platform_stat(ov, "FACEBOOK")
     _google_ov = _platform_stat(ov, "GOOGLE")
+    # Pinterest + TikTok have no live-API insights tool, so their platform-reported
+    # spend/revenue/ROAS come from the overview's platform_statistics (same source,
+    # already converted to store currency) rather than a campaign-insights payload.
+    _pinterest_ov = _platform_stat(ov, "PINTEREST")
+    _tiktok_ov = _platform_stat(ov, "TIKTOK")
 
     meta_spend_eur = _meta_ov["spend"] if _meta_ov["spend"] else _sum_spend_eur(w["meta"], fx)
     meta_in_rev_eur = _meta_ov["revenue"]
     google_spend_eur = _google_ov["spend"] if _google_ov["spend"] else _sum_spend_eur(w["google"], fx)
     google_in_rev_eur = _google_ov["revenue"]
+    pinterest_spend_eur = _pinterest_ov["spend"]
+    pinterest_in_rev_eur = _pinterest_ov["revenue"]
+    tiktok_spend_eur = _tiktok_ov["spend"]
+    tiktok_in_rev_eur = _tiktok_ov["revenue"]
     _ov_total = (ov.get("ad_account_spend") or 0) / 100
     ad_spend_eur = _ov_total if _ov_total else (meta_spend_eur + google_spend_eur)
 
@@ -136,6 +160,13 @@ def _compute_window(window_key, windows, daily, daily_spend_for, fx):
     google_conv = sum((c.get("conversions") or 0) for c in w["google"]["campaigns"])
     google_imp = sum(int(c.get("impressions") or 0) for c in w["google"]["campaigns"])
     google_clk = sum(int(c.get("clicks") or 0) for c in w["google"]["campaigns"])
+
+    # Pinterest/TikTok counts come from get_campaign_performance (platform-reported
+    # orders/checkouts + impressions/clicks). Spend/revenue still come from the
+    # overview above — the campaign feed's spend is in the ad-account currency,
+    # the overview is already converted to store currency.
+    pinterest_perf = _sum_perf(w.get("pinterest_perf"))
+    tiktok_perf = _sum_perf(w.get("tiktok_perf"))
 
     # ---- Daily NC-ROAS series (Acquisition MER over time) --------------------
     end_date = dt.date.fromisoformat(w["end"])
@@ -197,6 +228,18 @@ def _compute_window(window_key, windows, daily, daily_spend_for, fx):
                    "impressions": google_imp, "clicks": google_clk,
                    "purchases": round(google_conv)},
     }
+    # Pinterest/TikTok tiles render only when the store actually ran spend there
+    # (the overview always lists all four providers, so guard on real activity).
+    if pinterest_spend_eur or pinterest_in_rev_eur:
+        platforms["pinterest"] = {"label": "Pinterest", "color": "#E60023", "logo": "pinterest",
+                                  "spend": pinterest_spend_eur, "revenue": pinterest_in_rev_eur,
+                                  "impressions": pinterest_perf["impressions"], "clicks": pinterest_perf["clicks"],
+                                  "purchases": round(pinterest_perf["purchases"])}
+    if tiktok_spend_eur or tiktok_in_rev_eur:
+        platforms["tiktok"] = {"label": "TikTok", "color": "#000000", "logo": "tiktok",
+                               "spend": tiktok_spend_eur, "revenue": tiktok_in_rev_eur,
+                               "impressions": tiktok_perf["impressions"], "clicks": tiktok_perf["clicks"],
+                               "purchases": round(tiktok_perf["purchases"])}
     for p in platforms.values():
         p["roas"] = (p["revenue"] / p["spend"]) if p["spend"] else 0
         p["ctr"] = (p["clicks"] / p["impressions"] * 100) if p["impressions"] else 0
@@ -227,8 +270,11 @@ def _compute_window(window_key, windows, daily, daily_spend_for, fx):
         "facebook": ("Meta", "meta", meta_purchases, meta_in_rev_eur, meta_spend_eur),
         "google": ("Google", "google", round(google_conv), google_in_rev_eur, google_spend_eur),
         "klaviyo": ("Klaviyo", "klaviyo", None, None, 0),
-        "tiktok": ("TikTok", "tiktok", None, None, 0),
-        "pinterest": ("Pinterest", "pinterest", None, None, 0),
+        # Pinterest/TikTok now carry platform-reported spend + revenue (overview) and
+        # the platform-reported purchase count (TikTok orders / Pinterest checkouts,
+        # via get_campaign_performance), so Spend, Revenue, CPA and ROAS all populate.
+        "tiktok": ("TikTok", "tiktok", round(tiktok_perf["purchases"]), tiktok_in_rev_eur, tiktok_spend_eur),
+        "pinterest": ("Pinterest", "pinterest", round(pinterest_perf["purchases"]), pinterest_in_rev_eur, pinterest_spend_eur),
         "microsoft": ("Microsoft Ads", "microsoft", None, None, 0),
         "calendly": ("Calendly", "calendly", None, None, 0),
         "email": ("Email", "klaviyo", None, None, 0),
@@ -251,9 +297,10 @@ def _compute_window(window_key, windows, daily, daily_spend_for, fx):
         "channel": "Overall", "logo": None,
         "sessions": sum(r["sessions"] for r in rows_out),
         "purch_tb": sum(r["purch_tb"] for r in rows_out),
-        "purch_in": meta_purchases + round(google_conv),
+        "purch_in": meta_purchases + round(google_conv)
+        + round(pinterest_perf["purchases"]) + round(tiktok_perf["purchases"]),
         "rev_tb": sum(r["rev_tb"] for r in rows_out),
-        "rev_in": meta_in_rev_eur + google_in_rev_eur,
+        "rev_in": meta_in_rev_eur + google_in_rev_eur + pinterest_in_rev_eur + tiktok_in_rev_eur,
         "spend": sum(r["spend"] for r in rows_out),
     }
     overall["cpa"] = (overall["spend"] / overall["purch_in"]) if (overall["spend"] and overall["purch_in"]) else None
