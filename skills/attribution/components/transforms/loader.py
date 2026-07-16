@@ -38,6 +38,8 @@ def default_for(name):
         return dict(_DEFAULTS["meta"])
     if base.startswith("google"):
         return dict(_DEFAULTS["google"])
+    if base.startswith(("pinterest_perf", "tiktok_perf")):
+        return {"campaigns": []}
     if base.startswith("touchpoints"):
         return dict(_DEFAULTS["touchpoints"])
     if base.startswith("daily"):

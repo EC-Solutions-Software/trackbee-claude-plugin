@@ -110,6 +110,8 @@ def build(inputs_dir, config: dict, assets_dir, out_path) -> dict:
                "platform_funnel": loader.load_json(inputs_dir, "platform_funnel_3d.json"),
                "meta": loader.load_json(inputs_dir, "meta_3d.json"),
                "google": loader.load_json(inputs_dir, "google_3d.json"),
+               "pinterest_perf": loader.load_json(inputs_dir, "pinterest_perf_3d.json"),
+               "tiktok_perf": loader.load_json(inputs_dir, "tiktok_perf_3d.json"),
                "daily_slice": -3},
         "7d": {"label": "Last 7 days", "start": cw["7d"]["start"], "end": cw["7d"]["end"],
                "overview": loader.load_json(inputs_dir, "overview_7d.json"),
@@ -117,6 +119,8 @@ def build(inputs_dir, config: dict, assets_dir, out_path) -> dict:
                "platform_funnel": loader.load_json(inputs_dir, "platform_funnel_7d.json"),
                "meta": loader.load_json(inputs_dir, "meta_7d.json"),
                "google": loader.load_json(inputs_dir, "google_7d.json"),
+               "pinterest_perf": loader.load_json(inputs_dir, "pinterest_perf_7d.json"),
+               "tiktok_perf": loader.load_json(inputs_dir, "tiktok_perf_7d.json"),
                "daily_slice": -7},
         "28d": {"label": "Last 28 days", "start": cw["28d"]["start"], "end": cw["28d"]["end"],
                 "overview": loader.load_json(inputs_dir, "overview.json"),
@@ -124,6 +128,8 @@ def build(inputs_dir, config: dict, assets_dir, out_path) -> dict:
                 "platform_funnel": loader.load_json(inputs_dir, "platform_funnel.json"),
                 "meta": loader.load_json(inputs_dir, "meta.json"),
                 "google": loader.load_json(inputs_dir, "google.json"),
+                "pinterest_perf": loader.load_json(inputs_dir, "pinterest_perf.json"),
+                "tiktok_perf": loader.load_json(inputs_dir, "tiktok_perf.json"),
                 "daily_slice": None},
     }
 

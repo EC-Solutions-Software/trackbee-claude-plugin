@@ -128,9 +128,11 @@ needed when modifying a component or designing a new variant.
 
 ## MCP calls (exact set)
 
-Make exactly these calls. **Do not call `tool__get_campaign_performance`** —
-its data overlaps with `tool__get_*_campaign_insights` and it returns large
-duplicated rows that bloat context for no benefit.
+Make exactly these calls. Call `tool__get_campaign_performance` **only for
+Pinterest and TikTok** (the rows below) — they have no live-API insights tool,
+so it's the only source of their platform-reported purchases. **Do not call it
+for Meta or Google**: there its data overlaps with
+`tool__get_*_campaign_insights` and just bloats context.
 
 | Filename | Tool | Notes |
 | --- | --- | --- |
@@ -138,8 +140,10 @@ duplicated rows that bloat context for no benefit.
 | `daily.json` | `tool__get_daily_store_statistics` | 28-day window. **Pass `column_groups=["core","funnel","customer_segments","platform_totals"]`** to keep the response tight. Drives the daily NC-ROAS (Acquisition MER) line. |
 | `funnel.json` / `funnel_7d.json` / `funnel_3d.json` | `tool__get_funnel_overview` | One per window. **Pass `compare_previous_period=true`** so deltas are baked in. Drives the Store Funnel Analysis section and the blended funnel rates. |
 | `platform_funnel.json` / `platform_funnel_7d.json` / `platform_funnel_3d.json` | `tool__get_platform_funnel_breakdown` | One per window. Drives Channel Attribution sessions / TrackBee orders / revenue. |
-| `meta.json` / `meta_7d.json` / `meta_3d.json` | `tool__get_meta_campaign_insights` | One per window. Used for impressions, CTR, CPM, and in-platform purchase counts only. |
-| `google.json` / `google_7d.json` / `google_3d.json` | `tool__get_google_campaign_insights` | One per window. Used for impressions, CTR, CPM, and in-platform conversion counts only. |
+| `meta.json` / `meta_7d.json` / `meta_3d.json` | `tool__get_meta_campaign_insights` with `status_filter="all"` | One per window. Used for impressions, CTR, CPM, and in-platform purchase counts only. **Pass `status_filter="all"`** so campaigns that ran during the window but are paused now are still counted — the default (`active`) drops them and undercounts the window. |
+| `google.json` / `google_7d.json` / `google_3d.json` | `tool__get_google_campaign_insights` with `status_filter="all"` | One per window. Used for impressions, CTR, CPM, and in-platform conversion counts only. **Pass `status_filter="all"`** so campaigns active during the window but paused now are still counted (the default `active` undercounts). |
+| `pinterest_perf.json` / `pinterest_perf_7d.json` / `pinterest_perf_3d.json` | `tool__get_campaign_performance` with `platform="pinterest"` | One per window. Platform-reported purchases (Pinterest checkouts) + impressions/clicks for the Channel Attribution and Platform Overview rows. **Spend/revenue/ROAS still come from `overview.json`, not here** — this spend is in the ad-account currency, not `store_currency`. |
+| `tiktok_perf.json` / `tiktok_perf_7d.json` / `tiktok_perf_3d.json` | `tool__get_campaign_performance` with `platform="tiktok"` | One per window. Platform-reported purchases (TikTok orders) + impressions/clicks. Spend/revenue/ROAS come from `overview.json`, same as Pinterest. |
 | `touchpoints.json` | `tool__get_platform_footprints` + per-platform `tool__get_platform_breakdown` | Customer-journey scaffolding — see §Customer Journeys adapter. |
 | `j_meta.json`, `j_google.json`, `j_klaviyo.json`, `j_tiktok.json`, `j_pinterest.json`, `j_email.json` | `tool__get_platform_journeys` | One per top channel — see §Customer Journeys adapter. |
 
