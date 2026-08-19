@@ -20,4 +20,4 @@ description: >-
 
 This is a single-file skill. The canonical playbook lives in the TrackBee MCP context repo.
 
-Call `tool__skill__product_feedback` from the TrackBee Insights MCP and follow the playbook it returns verbatim. The mcp-context body is the only source of truth — never edit this stub to add steps.
+Call `skill__product_feedback` from the TrackBee Insights MCP and follow the playbook it returns verbatim. The mcp-context body is the only source of truth — never edit this stub to add steps.

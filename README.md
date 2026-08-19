@@ -16,6 +16,7 @@ TrackBee Insights Claude plugin. Each skill below is invoked through its `/<name
 - `/find-undervalued-ads` — surface high-performing creatives with low spend that deserve more budget.
 - `/scale-ads-profitably` — identify which ads to scale and at what cadence, based on ROAS, spend headroom, and audience saturation.
 - `/audit-creatives` — audit ad creatives: detect fatigue, compare content types, measure creative lifetime, and propose what to create next.
+- `/audit-klaviyo-campaign-creatives` — review a Klaviyo campaign's actual creative before or after it sends: either the individual images, or the finished email rendered as a shopper sees it. Covers email, SMS/MMS and push, and needs your Klaviyo connector.
 - `/store-funnel` — quick text read on the store conversion funnel (page view → product view → add to cart → checkout started → order) with the step-to-step drop-off and the single biggest leak named first; for a visual, persistent funnel use `/attribution`.
 - `/discuss-artifact` — answer follow-up questions about a Live Artifact already open in the conversation.
 - `/get-help-faq` — troubleshooting and FAQ for common questions and stuck states.
